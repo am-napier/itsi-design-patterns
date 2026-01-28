@@ -1,0 +1,38 @@
+{
+    "kpi_base_searches": [
+        "da-itsi-cp-cust-itsi_design_patterns-i-am-groot.json",
+        "da-itsi-cp-cust-itsi_design_patterns-infra-demo.json"
+    ],
+    "kpi_threshold_templates": [
+        "da-itsi-cp-cust-itsi_design_patterns-splk-mon-pct-high.json"
+    ],
+    "main_screenshot": {
+        "path": "Screenshot 2025-06-15 at 17.32.06.png",
+        "thumb": "Screenshot 2025-06-15 at 17.32.06.png"
+    },
+    "screenshots": [
+        {
+            "path": "Screenshot 2025-06-15 at 17.32.55.png",
+            "thumb": "Screenshot 2025-06-15 at 17.32.55.png"
+        },
+        {
+            "path": "s1-0.png",
+            "thumb": "s1-0.png"
+        },
+        {
+            "path": "idp_2.png",
+            "thumb": "idp_2.png"
+        }
+    ],
+    "service_templates": [
+        "da-itsi-cp-cust-itsi_design_patterns-i-am-groot-infra-db.json",
+        "da-itsi-cp-cust-itsi_design_patterns-i-am-groot-infra.json",
+        "da-itsi-cp-cust-itsi_design_patterns-i-am-groot.json",
+        "da-itsi-cp-cust-itsi_design_patterns-we-are-groot.json"
+    ],
+    "services": [
+        "da-itsi-cp-cust-itsi_design_patterns-i-am-groot-database.json",
+        "da-itsi-cp-cust-itsi_design_patterns-i-am-groot-tech.json",
+        "da-itsi-cp-cust-itsi_design_patterns-i-am-groot.json"
+    ]
+}

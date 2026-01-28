@@ -1,0 +1,18 @@
+child,infra,parent,tier,urgency
+"<tier 1> - <group>",,"<line of business> - <group>","*",11
+"<tier 2> (<tier 1>) - <group>",,"<tier 1> - <group>",t2,11
+"<tier 3> (<tier 2> <tier1>) - <group>",,"<tier 2> (<tier 1>) - <group>",t2,11
+"P1 <tiers> - <group>",,"<tier 1> - <group>",t1,11
+"P2 <tiers> - <group>",,"<tier 1> - <group>",t1,10
+"P3 <tiers> - <group>",,"<tier 1> - <group>",t1,3
+"P1 <tiers> - <group>",,"<tier 2> (<tier 1>) - <group>",t2,11
+"P2 <tiers> - <group>",,"<tier 2> (<tier 1>) - <group>",t2,10
+"P3 <tiers> - <group>",,"<tier 2> (<tier 1>) - <group>",t2,3
+"P1 <tiers> - <group>",,"<tier 3> (<tier 2> <tier1>) - <group>",t3,11
+"P2 <tiers> - <group>",,"<tier 3> (<tier 2> <tier1>) - <group>",t3,10
+"P3 <tiers> - <group>",,"<tier 3> (<tier 2> <tier1>) - <group>",t3,3
+"Infra <tiers> - <group>","*","<tiers> - <group>",,1
+"<site> <tiers> - <group>",site,"Infra <tiers> - <group>",,11
+"<infra type> <tiers> - <group>",type,"Infra <tiers> - <group>",,11
+"<site> <tiers> - <group>","type.site","Infra <tiers> - <group>",,11
+"<infra type> <site> <tiers> - <group>","type.site","<site> <tiers> - <group>",,11

@@ -1,0 +1,16 @@
+child,parent,tier,urgency
+"<t1> - <group>","<lob> - <group>",t1,11
+"<t1> - <group>","<lob> - <group>",t2,11
+"<t1> - <group>","<lob> - <group>",t3,11
+"<t2> (<t1>) - <group>","<t1> - <group>",t2,11
+"<t2> (<t1>) - <group>","<t1> - <group>",t3,11
+"<t3> (<t2> <t1>) - <group>","<t2> (<t1>) - <group>",t3,11
+"P1 <tiers> - <group>","<t1> - <group>",t1,11
+"P2 <tiers> - <group>","<t1> - <group>",t1,10
+"P3 <tiers> - <group>","<t1> - <group>",t1,3
+"P1 <tiers> - <group>","<t2> (<t1>) - <group>",t2,11
+"P2 <tiers> - <group>","<t2> (<t1>) - <group>",t2,10
+"P3 <tiers> - <group>","<t2> (<t1>) - <group>",t2,3
+"P1 <tiers> - <group>","<t3> (<t2> <t1>) - <group>",t3,11
+"P2 <tiers> - <group>","<t3> (<t2> <t1>) - <group>",t3,10
+"P3 <tiers> - <group>","<t3> (<t2> <t1>) - <group>",t3,3

@@ -1,0 +1,29 @@
+app,dependencies,id,job_duration_mins,job_warn,jobs_failed_pct,jobs_running,start_after_mins,system
+job 1,,tc-1,15,5,0,29,2,Transaction Consolidation
+job 2,,tc-2,15,5,.2,22,2,Transaction Consolidation
+job 3,,tc-3,60,58,0,25,10,Transaction Consolidation
+job 4,tc-3,tc-4,10,,0.1,40,15,Transaction Consolidation
+job 5,tc-3,tc-5,7,0,0,12,20,Transaction Consolidation
+job 1,tc-5,au-1,20,0,0,531,60,Account Updates
+job 2,,au-2,15,0,0,566,60,Account Updates
+job 3,,au-3,15,,0,285,60,Account Updates
+job 4,au-3,au-4,20,,0,44,120,Account Updates
+job 1,,ica-1,20,,0,31,60,Interest Calc and Application
+job 2,ica-1,ica-2,15,,0,44,90,Interest Calc and Application
+job 3,ica-2,ica-3,15,,0,31,120,Interest Calc and Application
+job 4,ica-3,ica-4,8,,0,39,180,Interest Calc and Application
+job 1,tc-5,fp-1,20,,0,43,60,Fee and Penalty
+job 2,,fp-2,20,,0,42,60,Fee and Penalty
+job 3,,fp-3,15,,0,27,60,Fee and Penalty
+job 1,ica-4,rb-1,20,,0,96,240,Reconciliation and Balancing
+job 2,ica-4,rb-2,20,,0,32,240,Reconciliation and Balancing
+job 3,ica-4,rb-3,15,,0,103,240,Reconciliation and Balancing
+job 1,rb-1,cc-1,15,,0,41,300,Compliance Checks
+job 2,cc-1,cc-2,26,,0,36,315,Compliance Checks
+job 3,cc-2,cc-3,27,,0,41,330,Compliance Checks
+job 1,cc-3,rg-1,21,,0,30,360,Report Generation
+job 2,cc-3,rg-2,21,,0,44,360,Report Generation
+job 3,cc-3,rg-3,20,,0,42,360,Report Generation
+job 1,cc-3,ab-1,20,,0,38,360,Archival and Backup
+job 2,cc-3,ab-2,15,,0,39,360,Archival and Backup
+job 3,cc-3,ab-3,15,,0,33,360,Archival and Backup

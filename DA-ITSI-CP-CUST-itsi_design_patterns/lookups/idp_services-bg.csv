@@ -1,0 +1,13 @@
+group,lob,t1,t2,t3,template,infra,infra_types,sites,priorities,x
+UK,BC Industries,Payments,,,bg-payments,,,,0,bg-payments
+UK,BC Industries,CRM,,,bg-crm,,,,"1,2,3",bg-crm
+UK,BC Industries,Games,Desktop,,bg-games,type,"web,app,db",,"1,2,3",bg-games
+UK,BC Industries,Games,Mobile,,bg-games-mobile,type.site,k8s,"dc1,dc2","1,2",bg-games-mobile
+UK,BC Industries,Games,Web,,bg-games-web,type,"web,app,db",,"1,2,3",bg-games-web
+UK,BC Industries,Games,Mobile,Catalogue,bg-games-mobile-catalogue,basic,db,,1,bg-games-mobile-catalogue
+UK,BC Industries,Games,Mobile,Runtime,bg-games-mobile-runtime,,,,"1,3",bg-games-mobile-runtime
+UK,BC Industries,Games,Mobile,Design,bg-games-mobile-design,,,,2,bg-games-mobile-design
+UK,BC Industries,Coffee,Distribution,Warehouse,bg-coffee-distribution-warehouse,basic,,,1,bg-coffee-distribution-warehouse
+UK,BC Industries,Coffee,Distribution,Fleet,bg-coffee-distribution-fleet,site,win,"lon,bmg,lds,man",1,bg-coffee-distribution-fleet
+UK,BC Industries,Coffee,Distribution,Fleet,bg-coffee-distribution-fleet,site,"win,lnx,db","dc1,dc2",1,bg-coffee-distribution-fleet
+UK,BC Industries,Coffee,Growers Portal,,bg-coffee-growers_portal,,,,"2,3",bg-coffee-growers_portal

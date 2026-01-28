@@ -1,0 +1,487 @@
+<form version="1.1" theme="light">
+  <label>ITSI Design Patterns</label>
+  <!-- Searches Section 
+    service_tree - gets the main set of records from the lookups via saved search
+    set_template_filter_string - generates the list of service templates used by the current service_tree
+    set_template_filter - generates a token that is used by itsiimportobjects to set the entity filter in the service template import
+  -->
+  <search id="service_tree">
+    <query>| savedsearch idp_base lookup=$lookup_name$ lob=$lob|s$ group=$group|s$ system=$system|s$</query>
+  </search>
+  <search base="service_tree" id="set_template_filter_string">
+    <query>
+      | fields template_name
+      | stats values(template_name) as filter | eval filter=mvjoin(filter, "|")
+    </query>
+    <done>
+      <set token="template_filter_regex">$result.filter$</set>
+    </done>
+  </search>
+  <search base="service_tree" id="set_svc_title_list">
+    <query>
+      | appendpipe [ | where isnotnull(child) | rename child as parent ]
+      | rex field=parent mode=sed "s/[()]/./g"
+      | stats values(parent) as filter | eval filter=mvjoin(filter, "|")
+    </query>
+    <done>
+      <set token="service_filter_regex">$result.filter$</set>
+    </done>
+  </search>
+  <search id="set_template_filter">
+    <query>
+      <![CDATA[
+| rest report_as=text splunk_server=local /servicesNS/nobody/SA-ITOA/itoa_interface/base_service_template filter="{\"title\": {\"$regex\" : \"^($template_filter_regex$)$\" }}" fields="entity_rules,title" 
+| eval value=spath(value, "{}") | mvexpand value 
+| eval title=spath(value, "title"), id=spath(value, "_key") 
+| eval rules=spath(value, "entity_rules{}"), value=null() 
+| mvexpand rules 
+| streamstats c by title 
+| eval key=title.c, item=spath(rules, "rule_items{}") 
+| mvexpand item 
+| foreach field field_type value rule_type 
+    [ eval <<FIELD>>=spath(item, "<<FIELD>>")] 
+| eval new_item=case(rule_type=="matchesblank", json_object("field", field, "field_type", field_type, "value", field, "rule_type", "matchesblank"), rule_type=="notmatchesblank", json_object("field", field, "field_type", field_type, "value", field, "rule_type", "notmatchesblank"), 1==1, item) 
+| stats values(new_item) as item by key, title 
+| eval new_rules=json_object("rule_condition", "AND", "rule_items", json(printf("[%s]", mvjoin(item, ",")))) 
+| eval f=json_object("rule_items", json(printf("[%s]", mvjoin(item, ","))), "rule_condition", "AND") 
+| stats values(f) as filter by title 
+| eval serviceTemplatesConfig=printf("\"%s\": %s", title, json_object("entity_rules", json(printf("[%s]", mvjoin(filter, ","))))) 
+| stats values(serviceTemplatesConfig) as serviceTemplatesConfig 
+| eval serviceTemplatesConfig=printf("\"{%s}\"", replace(mvjoin(serviceTemplatesConfig, ","), "\"", "\\\""))      
+    ]]>
+    </query>
+    <done>
+      <set token="template_filter_config">$result.serviceTemplatesConfig$</set>
+      <set token="template_filter_config_complete">Complete</set>
+    </done>
+  </search>
+  <!-- 
+      Initial Token settings, just make sure the template filter is unset on page load
+      Comment is set to empty string rather than unset
+  -->
+  <init>
+    <unset token="template_filter_regex"></unset>
+    <unset token="template_filter_config"></unset>
+    <set token="comment">```</set>
+  </init>
+  <!--row rejects="$template_filter_config_complete$">
+    <panel>
+      <html>
+        <div style="font-style:bold;color:red;font-size:150%">WARNING!<br/>Template Filter is Loading.<br/>Do not run action "3. Build Model" until this message disappears</div>
+      </html>
+    </panel>
+  </row-->
+  <fieldset submitButton="false" autoRun="false">
+    <input type="dropdown" token="lookup_name" searchWhenChanged="false">
+      <label>Source</label>
+      <default>idp_services.csv</default>
+      <initialValue>idp_services.csv</initialValue>
+      <fieldForLabel>title</fieldForLabel>
+      <fieldForValue>title</fieldForValue>
+      <search>
+        <query>| rest /services/data/lookup-table-files | search title=idp*services*.csv | fields title</query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+      <change>
+        <unset token="form.group"></unset>
+      </change>
+    </input>
+    <input type="dropdown" token="group" searchWhenChanged="true">
+      <label>Group</label>
+      <fieldForLabel>group</fieldForLabel>
+      <fieldForValue>group</fieldForValue>
+      <search>
+        <query>| inputlookup $lookup_name$  | stats c by group</query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+      <choice value="*">All</choice>
+      <default>*</default>
+      <initialValue>*</initialValue>
+      <change>
+        <unset token="form.lob"></unset>
+      </change>
+    </input>
+    <input type="dropdown" token="lob" searchWhenChanged="true">
+      <label>Line of Business</label>
+      <fieldForLabel>lob</fieldForLabel>
+      <fieldForValue>lob</fieldForValue>
+      <search>
+        <query>| inputlookup $lookup_name$  where group=$group|s$ | stats c by lob</query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+      <choice value="*">All</choice>
+      <!--default>*</default>
+      <initialValue>*</initialValue-->
+      <change>
+        <unset token="form.system"></unset>
+        <unset token="template_filter_regex"></unset>
+        <unset token="template_filter_config"></unset>
+        <unset token="template_filter_config_complete"></unset>
+      </change>
+    </input>
+    <input type="dropdown" token="system" searchWhenChanged="true">
+      <label>Systems</label>
+      <fieldForLabel>t1</fieldForLabel>
+      <fieldForValue>t1</fieldForValue>
+      <search>
+        <query>| inputlookup $lookup_name$  where lob=$lob|s$ AND group=$group|s$
+| dedup t1</query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+      <choice value="*">All</choice>
+      <change>
+        <unset token="form.dd_action"></unset>
+      </change>
+      <default>*</default>
+      <initialValue>*</initialValue>
+    </input>
+    <input type="dropdown" token="updateType" searchWhenChanged="false">
+      <label>Update Type (entity only)</label>
+      <choice value="replace">Replace</choice>
+      <choice value="upsert">Upsert</choice>
+      <default>upsert</default>
+      <initialValue>upsert</initialValue>
+    </input>
+    <input type="text" token="template_clone_id">
+      <label>Template ID (GUID) to Clone</label>
+      <default>i-am-groot</default>
+      <initialValue>i-am-groot</initialValue>
+    </input>
+    <input type="dropdown" token="log_level">
+      <label>Logging</label>
+      <choice value="debug">Debug</choice>
+      <choice value="info">Info</choice>
+      <choice value="none">None</choice>
+      <default>none</default>
+      <initialValue>none</initialValue>
+      <change>
+        <condition value="debug">
+          <set token="log_level_debug">DEBUG_1</set>
+          <set token="log_level_info">INFO_1</set>
+          <set token="comment"></set>
+        </condition>
+        <condition value="info">
+          <unset token="log_level_debug"></unset>
+          <set token="log_level_info">INFO</set>
+          <set token="comment"></set>
+        </condition>
+        <condition value="none">
+          <unset token="log_level_debug"></unset>
+          <unset token="log_level_info"></unset>
+          <set token="comment"></set>
+        </condition>
+      </change>
+    </input>
+  </fieldset>
+  <row depends="$lob$">
+    <panel>
+      <title>Action to run - Comment Set [$comment$]</title>
+      <input type="checkbox" token="comment">
+        <label></label>
+        <choice value="```">Disable Import</choice>
+        <change>
+          <condition label="Disable Import">
+            <set token="comment">```</set>
+          </condition>
+          <condition>
+            <set token="comment"></set>
+          </condition>
+        </change>
+        <initialValue>```</initialValue>
+        <delimiter> </delimiter>
+      </input>
+      <input type="dropdown" token="dd_action" searchWhenChanged="false">
+        <label>Action</label>
+        <choice value="view">Pick an Action</choice>
+        <choice value="create_template">1. Create Templates (confitsi)</choice>
+        <choice value="reload_page">2. Reload the page</choice>
+        <choice value="service_entities">3. Create Service Entities (import objects)</choice>
+        <!--
+                <option name="drilldown">cell</option>
+        <drilldown>
+          <link target="_blank">/app/itsi/idp_itsi_design_patterns/edit?form.lookup_name=idp_services-bg.csv&amp;form.updateType=upsert&amp;form.template_clone_id=i-am-groot&amp;form.log_level=none&amp;form.group=UK&amp;form.system=Games&amp;form.dd_action=create_template&amp;form.lob=BC%20Industries&amp;hideFilters=false</link>
+        </drilldown>
+        -->
+        <choice value="build">4. Build Model (import objects)</choice>
+        <choice value="urgency">5. Update Urgencies (confitsi)</choice>
+        <choice value="clean_up">6. Cleanup (itsidelete)</choice>
+        <default>view</default>
+        <initialValue>view</initialValue>
+        <change>
+          <condition value="view">
+            <set token="action_body">makeresults | eval msg="Pick an action to run it"</set>
+          </condition>
+          <condition value="reload_page">
+            <set token="action_body">makeresults | eval msg="If you added any service templates then please reload the page now or template filters will not generate correctly - i.e. Ctrl/Cmd-R"</set>
+          </condition>
+          <condition value="create_template">
+            <set token="action_body">``` Generates CURL that clones the service template with the given id ```
+           savedsearch idp_base lookup=$lookup_name$ lob="$lob$" system="$system$" group="$group$"  | fields template_name | dedup template_name | where len(template_name) &gt; 0
+            | lookup itsi_service_template_sync_status_lookup title as template_name OUTPUT _key as key_found
+            | where isnull(key_found) ``` templates that dont exist ```
+            | eval payload=json_object("title", template_name, "_key", lower(replace(template_name, "\s+", "_")), "base_service_template_id", "$template_clone_id$")
+            | confitsi type=base_service_template is_bulk=0 is_update=0 is_partial=0 $comment$ confirm=1 $comment$</set>
+          </condition>
+          <condition value="urgency">
+            <set token="action_body">
+              <![CDATA[``` Generated payload to set the KPI urgency for the named services ``` 
+            `itoa_rest("service", "title", "^($service_filter_regex$)$", "_key,title,services_depends_on,service_tags")` 
+            | eval urg_tag=spath(value, "service_tags.tags{}")```, p=spath(value, "services_depending_on_me{}") | mvexpand p | fields - value```
+            | mvexpand urg_tag
+            | search urg_tag=urg:*
+            | rex field=urg_tag "^urg:(?<child>.+):(?<urgency>\d+)$"
+            | join child [| inputlookup service_kpi_lookup | eval child=lower(title), child_id=_key | fields child, child_id ]
+            | eval link=spath(value, "services_depends_on{}") | mvexpand link
+            | where child_id=spath(link, "serviceid")
+            | eval link=json_set(link, "overloaded_urgencies", json_object("SHKPI-".child_id, urgency))
+            | fields - value, splunk_server urg_tag
+            | stats values(link) as link by id, title
+            | eval payload=json_object("_key", id, "title", title, "services_depends_on", json(printf("[%s]", mvjoin(link, ","))))
+            `get_payload`
+            | confitsi type=service $comment$ confirm=1 $comment$
+          ]]>
+            </set>
+          </condition>
+          <condition value="build">
+            <set token="action_body">``` Generates the selected services ```
+              savedsearch idp_base lookup=$lookup_name$ group=$group|s$ lob=$lob|s$ system=$system|s$ 
+               $comment$
+                  | itsiimportobjects
+                    serviceTagsFields="tag1,tag2,tag3,tag4,tag5,tag6"
+                    serviceEnabled="1"
+                    serviceTitleField=parent
+                    serviceDependentsFields=child
+                    serviceTemplateField="template_name"
+                    serviceTemplatesConfig=$template_filter_config$
+                    updateType=$updateType$
+                  $comment$</set>
+          </condition>
+          <condition value="service_entities">
+            <set token="action_body">``` Generates the entities for the selected applications services```
+              savedsearch idp_base lookup=$lookup_name$ group=$group|s$ lob=$lob|s$ system=$system|s$
+               | where isnotnull(template_name)
+               | dedup system_app
+               $comment$
+                  | itsiimportobjects
+                    entityFieldMapping=""
+                    entityIdentifierFields="system_app"
+                    entityInformationalFields="group,system,app,lob,type_name,function,tech_type,node_type"    
+                    entityMergeField="system_app"
+                    entityTitleField="system_app"
+                    entityTypeField="Service Entity" 
+                    updateType=$updateType$
+              $comment$</set>
+          </condition>
+          <condition value="clean_up">
+            <set token="action_body">
+              <![CDATA[ makeresults | eval run_this_spl="
+``` <WARN>Run this SPL but double check your backup is in good order as you might need it.  </WARN>```
+| union 
+[| itsidelete type=entity field=system_app pattern=\"($lob$|$system$).+ABC$\" confirm=1]
+[| itsidelete type=service field=title pattern=\"($lob$|$system$).+ABC$\" confirm=1]
+[| itsidelete type=base_service_template field=title pattern=\"^TO_BE_COMPLETED$\"  confirm=1]
+"]]>
+            </set>
+          </condition>
+        </change>
+      </input>
+    </panel>
+  </row>
+  <row depends="$log_level_info$">
+    <panel>
+      <html>
+        <div>
+          <b>
+        Review Tokens to ensure correct values are set as expected, use disable import to validate without running any breaking updates.
+          </b>
+        </div>
+        <br/>
+        <table>
+        <tr>
+            <td border="1" width="300px">
+              <b>Info Tokens</b>
+            </td>
+            <td>
+              <b>Token Value</b>
+            </td>
+          </tr>
+        <tr>
+            <td>Use Confitsi</td>
+            <td>$use_confitsi$</td>
+          </tr>
+        <tr>
+            <td>Current Action</td>
+            <td>$dd_action$</td>
+          </tr>
+        <tr>
+            <td>Template Filter List</td>
+            <td>$template_filter_regex$</td>
+          </tr>
+        <tr>
+            <td>Service Title Filter</td>
+            <td>$service_filter_regex$</td>
+          </tr>
+          
+        <tr>
+            <td>Group</td>
+            <td>$group|s$</td>
+          </tr>
+        <tr>
+            <td>Line of Business</td>
+            <td>$lob|s$</td>
+          </tr>
+        <tr>
+            <td>system</td>
+            <td>$system|s$</td>
+          </tr>
+      </table>
+      </html>
+    </panel>
+  </row>
+  <row depends="$log_level_debug$">
+    <panel>
+      <html>
+        <div>
+          <b>
+        For Template Filter Config ensure it contains all expected templates or services will not generate with correct entity filters.
+        </b>
+        </div>
+        <br/>
+        <table>
+        <tr>
+            <td border="1" width="300px">
+              <b>Debug Tokens</b>
+            </td>
+            <td>
+              <b>Token Value</b>
+            </td>
+          </tr>
+        <tr>
+            <td>Template Filter Config</td>
+            <td>$template_filter_config$</td>
+          </tr>
+        <tr>
+            <td>Action Body</td>
+            <td>$action_body$</td>
+          </tr>
+      </table>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Actions Panel for generating various bits of config</title>
+      <table>
+        <search>
+          <query>| $action_body$</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <viz type="dendrogram_viz.dendrogram_viz">
+        <title>Service Tree - select a node to view both proposed and existing config</title>
+        <search base="service_tree">
+          <query>| where isnotnull(child) | dedup parent child | table parent, child</query>
+        </search>
+        <option name="dendrogram_viz.dendrogram_viz.color1">#171d21</option>
+        <option name="dendrogram_viz.dendrogram_viz.color2">#ffffff</option>
+        <option name="dendrogram_viz.dendrogram_viz.delimiter">/</option>
+        <option name="dendrogram_viz.dendrogram_viz.html">no</option>
+        <option name="dendrogram_viz.dendrogram_viz.label_size">10</option>
+        <option name="dendrogram_viz.dendrogram_viz.layout">vertical</option>
+        <option name="dendrogram_viz.dendrogram_viz.linkcolor">#555555</option>
+        <option name="dendrogram_viz.dendrogram_viz.max_rows">1000</option>
+        <option name="dendrogram_viz.dendrogram_viz.node_ancestor_spacing">60</option>
+        <option name="dendrogram_viz.dendrogram_viz.node_sibling_spacing">45</option>
+        <option name="dendrogram_viz.dendrogram_viz.node_size">8</option>
+        <option name="dendrogram_viz.dendrogram_viz.nodecolor">#999999</option>
+        <option name="dendrogram_viz.dendrogram_viz.radius">300</option>
+        <option name="dendrogram_viz.dendrogram_viz.tidy">no</option>
+        <option name="dendrogram_viz.dendrogram_viz.zoom">no</option>
+        <option name="drilldown">all</option>
+        <option name="height">691</option>
+        <option name="refresh.display">progressbar</option>
+        <drilldown>
+          <set token="child_clicked">$row.child$</set>
+          <set token="svc_clicked">$row.parent$</set>
+          <set token="clicked">$dendrogram_viz_name$</set>
+        </drilldown>
+      </viz>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Proposed Service Config - if created</title>
+        <search base="service_tree">
+          <query>| search parent="$clicked$"
+| stats values(*) as * by parent
+| eval tags=mvappend(tag1, tag2, tag3, tag4, tag5, mvjoin(tag6, "
+"))
+| eval fields=split(printf("lob:         %s|group:       %s|site:        %s|system:      %s|app :        %s|function:    %s|urgency:     %s", lob,group,site,system,app,function,urgency), "|")
+| table parent* template_name child* tags pattern fields 
+| transpose</query>
+        </search>
+        <option name="count">100</option>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Existing Service Config - if it exists</title>
+        <search>
+          <query>| rest report_as=text splunk_server=local /servicesNS/nobody/SA-ITOA/itoa_interface/service filter="{\"title\": \"$clicked$\"}" fields="title,_key,base_service_template_id,entity_rules,service_tags,services_depends_on" 
+| eval value=spath(value, "{}") 
+| mvexpand value 
+| eval "title"=spath(value, "title"), "service_id"=spath(value, "_key") 
+| eval template_id=coalesce(spath(value, "base_service_template_id"), "n/a") 
+| eval er=coalesce(spath(value, "entity_rules{}"), "n/a") 
+| eval dependecies=spath(value, "services_depends_on{}") 
+| mvexpand dependecies
+| eval child=spath(dependecies, "overloaded_urgencies")
+| rex field=child "\"(?&lt;child&gt;[^\"]+)\"[:\s]+(?&lt;urgency&gt;\d+)" 
+
+| appendpipe [| where isnull(child)|eval child=spath(dependecies, "serviceid") | lookup service_kpi_lookup _key as child OUTPUT title as child | eval c2=child."::11 (Default)"]
+| lookup service_kpi_lookup kpis._key as child OUTPUT title as child
+| eval children=coalesce(child."::".urgency, c2)
+
+| eval "tags"=spath(value, "service_tags.tags{}") 
+| lookup itsi_service_template_sync_status_lookup _key as template_id OUTPUT title as template_name
+| fields - _* splunk_server value
+| table title service_id template* er tags children
+
+| mvexpand er
+| eval entity_rule_items=spath(er, "rule_items{}") | mvexpand entity_rule_items
+| eval entity_rules=printf("%s:%s %s %s",  upper(spath(entity_rule_items, "field_type")), spath(entity_rule_items, "field"), 
+              case(spath(entity_rule_items, "rule_type")=="matches", "==",
+                   spath(entity_rule_items, "rule_type")=="notmatches", "!=",
+                   1==1, upper(spath(entity_rule_items, "rule_type"))), 
+              spath(entity_rule_items, "value"))
+| stats values(*) as * by title service_id er
+| fields - er*
+| eval entity_rules=printf("------
+%s
+------", mvjoin(entity_rules, "
+"))
+| stats values(*) as * by title service_id
+| table title service_id template* *
+| transpose
+| rename "row 1" as value
+| appendpipe [ | stats count | where count=0 | eval column="No Service called '$clicked$' found" | table column]</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+</form>

@@ -1,0 +1,13 @@
+app,dc,inc,"infra_template",pattern,priorities,region,system
+"Simply Sales",,1,,simple,,UK,ACME
+"Sassy Service",,1,,saas,1,UK,ACME
+"Buttercup Games","eu-1,eu-2",1,"win,lnx",infra,"1,2,3",UK,ACME
+"Buttercup Coffee",,1,"i.am.infra.test",infra,1,UK,ACME
+"Buttercup Shirts",,1,,saas,"2,3",UK,ACME
+T1,,1,"i.am.groot",infra,"1,3",ABC,Test
+T2,"dc1,dc2",1,"i.am.groot.dc","infra.dc","1,3",ABC,Test
+T3,,1,"win,lnx","infra.type","1,3",ABC,Test
+T4,"dc1,dc2",1,"lnx,db","infra.dc.type","1,3",ABC,Test
+T4,"xxx1,xxx2,xxx3,xxx4",1,lnx,"infra.dc.type","1,3",ABC,Test
+Tsaas,,1,,saas,"2,3",ABC,Test
+Tsimple,,1,,simple,,ABC,Test

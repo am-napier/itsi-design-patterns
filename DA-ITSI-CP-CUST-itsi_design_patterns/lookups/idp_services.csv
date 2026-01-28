@@ -1,0 +1,18 @@
+group,lob,t1,t2,t3,priorities,template,infra,infra_types,sites
+INF,LOB-infra,T1-basic,two,333,1,inf-basic,basic,lnx,
+INF,LOB-infra,T1-site,T-Two,,"1,2,3",inf-site,site,groot,"dc-1,dc-2"
+INF,LOB-infra,T1-type,T-Two,T-three,0,inf-type,type,"groot,db",
+INF,LOB-infra,T1-type-site,T-Two,T-Three,"1,2",inf-type-site,type.site,"lnx,win","dc-1,dc-2"
+INF,LOB-infra,T1-type-site,T-Two,T-Three,1,inf-type-site,type.site,groot,"LDN,MAN"
+Demo,BC Industries,Payments,,,0,bg-payments,,,
+Demo,BC Industries,CRM,,,"1,2,3",bg-crm,,,
+DemoX,BC Industries,Games,,,"1,2",bg-games,type,"web,app,db",
+Demo,BC Industries,Games,Mobile,,"1,2",bg-games-mobile,type.site,k8s,"dc1,dc2"
+Demo,BC Industries,Games,Desktop,,"1,2",bg-games-web,type,"web,app,db",
+Demo,BC Industries,Games,Mobile,Catalogue,1,bg-games-mobile-catalogue,basic,AppD,
+Demo,BC Industries,Games,Mobile,Runtime,"1,2",bg-games-mobile-runtime,site,groot,"eu-0,eu-1"
+Demo,BC Industries,Games,Mobile,Design,"1,2",bg-games-mobile-design,type,"lnx,db",
+Demo,BC Industries,Coffee,Distribution,Warehouse,1,bg-coffee-distribution-warehouse,basic,,
+Demo,BC Industries,Coffee,Distribution,Fleet,1,bg-coffee-distribution-fleet,site,win,"lon,bmg,lds,man"
+Demo,BC Industries,Coffee,Distribution,Fleet,1,bg-coffee-distribution-fleet,site,"win,lnx,db","dc1,dc2"
+Demo,BC Industries,Coffee,Growers Portal,,"2,3",bg-coffee-growers_portal,,,

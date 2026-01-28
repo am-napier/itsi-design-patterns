@@ -1,0 +1,80 @@
+child,"child_pattern",pattern,service,"service_pattern",urgency
+"P1 <app> (<system>[funct]) - <group>","P1 <app> (<system>[funct]) - <group>",infra,"<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>",11
+"<system> - <group>","<system> - <group>",infra,"<lob> - <group>","<lob> - <group>",5
+"<system> - <group>","<system> - <group>",simple,"<lob> - <group>","<lob> - <group>",5
+"Infra <app> (<system>[funct]) - <group>","Infra <app> (<system>[funct]) - <group>",infra,"<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>",1
+"<system> - <group>","<system> - <group>",saas,"<lob> - <group>","<lob> - <group>",5
+"<system>[funct] - <group>","<system>[funct] - <group>",infra,"<system> - <group>","<system> - <group>",5
+"P1 <app> (<system>[funct]) - <group>","P1 <app> (<system>[funct]) - <group>",saas,"<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>",11
+"P2 <app> (<system>[funct]) - <group>","P2 <app> (<system>[funct]) - <group>",saas,"<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>",10
+"P3 <app> (<system>[funct]) - <group>","P3 <app> (<system>[funct]) - <group>",saas,"<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>",1
+"P2 <app> (<system>[funct]) - <group>","P2 <app> (<system>[funct]) - <group>",infra,"<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>",10
+"P3 <app> (<system>[funct]) - <group>","P3 <app> (<system>[funct]) - <group>",infra,"<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>",1
+"<system>[funct] - <group>","<system>[funct] - <group>",saas,"<system> - <group>","<system> - <group>",5
+"<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>",saas,"<system>[funct] - <group>","<system>[funct] - <group>",5
+"<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>",infra,"<system>[funct] - <group>","<system>[funct] - <group>",5
+"P1 <app> (<system>[funct]) - <group>","P1 <app> (<system>[funct]) - <group>","infra.site","<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>",11
+"<system> - <group>","<system> - <group>","infra.site","<lob> - <group>","<lob> - <group>",5
+"Infra <app> (<system>[funct]) - <group>","Infra <app> (<system>[funct]) - <group>","infra.site","<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>",1
+"<system>[funct] - <group>","<system>[funct] - <group>","infra.site","<system> - <group>","<system> - <group>",5
+"P2 <app> (<system>[funct]) - <group>","P2 <app> (<system>[funct]) - <group>","infra.site","<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>",10
+"P3 <app> (<system>[funct]) - <group>","P3 <app> (<system>[funct]) - <group>","infra.site","<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>",1
+"<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>","infra.site","<system>[funct] - <group>","<system>[funct] - <group>",5
+"Infra <app> <site> (<system>[funct]) - <group>","Infra <app> <site> (<system>[funct]) - <group>","infra.site","Infra <app> (<system>[funct]) - <group>","Infra <app> (<system>[funct]) - <group>",11
+"P1 <app> (<system>[funct]) - <group>","P1 <app> (<system>[funct]) - <group>","infra.site.type","<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>",11
+"<system> - <group>","<system> - <group>","infra.site.type","<lob> - <group>","<lob> - <group>",5
+"Infra <app> (<system>[funct]) - <group>","Infra <app> (<system>[funct]) - <group>","infra.site.type","<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>",1
+"<system>[funct] - <group>","<system>[funct] - <group>","infra.site.type","<system> - <group>","<system> - <group>",5
+"P2 <app> (<system>[funct]) - <group>","P2 <app> (<system>[funct]) - <group>","infra.site.type","<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>",10
+"P3 <app> (<system>[funct]) - <group>","P3 <app> (<system>[funct]) - <group>","infra.site.type","<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>",1
+"<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>","infra.site.type","<system>[funct] - <group>","<system>[funct] - <group>",5
+"<site> <app> (<system>[funct]) - <group>","<site> <app> (<system>[funct]) - <group>","infra.site.type","Infra <app> (<system>[funct]) - <group>","Infra <app> (<system>[funct]) - <group>",11
+"<infra> <site> <app> (<system>[funct]) - <group>","<infra> <site> <app> (<system>[funct]) - <group>","infra.site.type","<site> <app> (<system>[funct]) - <group>","<site> <app> (<system>[funct]) - <group>",11
+"P1 <app> (<system>[funct]) - <group>","P1 <app> (<system>[funct]) - <group>","infra.type","<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>",11
+"Infra <app> (<system>[funct]) - <group>","Infra <app> (<system>[funct]) - <group>","infra.type","<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>",1
+"<system>[funct] - <group>","<system>[funct] - <group>","infra.type","<system> - <group>","<system> - <group>",5
+"P2 <app> (<system>[funct]) - <group>","P2 <app> (<system>[funct]) - <group>","infra.type","<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>",10
+"P3 <app> (<system>[funct]) - <group>","P3 <app> (<system>[funct]) - <group>","infra.type","<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>",1
+"<app> (<system>[funct]) - <group>","<app> (<system>[funct]) - <group>","infra.type","<system>[funct] - <group>","<system>[funct] - <group>",5
+"<infra> <app> (<system>[funct]) - <group>","<infra> <app> (<system>[funct]) - <group>","infra.type","Infra <app> (<system>[funct]) - <group>","Infra <app> (<system>[funct]) - <group>",11
+"<system> - <group>","<system> - <group>","infra.type","<lob> - <group>","<lob> - <group>",5
+"P1 <system> - <group>","P1 <system> - <group>",simple,"<system> - <group>","<system> - <group>",11
+"P2 <system> - <group>","P2 <system> - <group>",simple,"<system> - <group>","<system> - <group>",10
+"P3 <system> - <group>","P3 <system> - <group>",simple,"<system> - <group>","<system> - <group>",1
+"P1 <system>[funct] - <group>","P1 <system>[funct] - <group>","infra-null","<system>[funct] - <group>","<system>[funct] - <group>",11
+"<system> - <group>","<system> - <group>","infra-null","<lob> - <group>","<lob> - <group>",5
+"<system> - <group>","<system> - <group>","simple-null","<lob> - <group>","<lob> - <group>",5
+"Infra <system>[funct] - <group>","Infra <system>[funct] - <group>","infra-null","<system>[funct] - <group>","<system>[funct] - <group>",1
+"<system> - <group>","<system> - <group>","saas-null","<lob> - <group>","<lob> - <group>",5
+"<system>[funct] - <group>","<system>[funct] - <group>","infra-null","<system> - <group>","<system> - <group>",5
+"P1 <system>[funct] - <group>","P1 <system>[funct] - <group>","saas-null","<system>[funct] - <group>","<system>[funct] - <group>",11
+"P2 <system>[funct] - <group>","P2 <system>[funct] - <group>","saas-null","<system>[funct] - <group>","<system>[funct] - <group>",10
+"P3 <system>[funct] - <group>","P3 <system>[funct] - <group>","saas-null","<system>[funct] - <group>","<system>[funct] - <group>",1
+"P2 <system>[funct] - <group>","P2 <system>[funct] - <group>","infra-null","<system>[funct] - <group>","<system>[funct] - <group>",10
+"P3 <system>[funct] - <group>","P3 <system>[funct] - <group>","infra-null","<system>[funct] - <group>","<system>[funct] - <group>",1
+"<system>[funct] - <group>","<system>[funct] - <group>","saas-null","<system> - <group>","<system> - <group>",5
+"P1 <system>[funct] - <group>","P1 <system>[funct] - <group>","infra.site-null","<system>[funct] - <group>","<system>[funct] - <group>",11
+"<system> - <group>","<system> - <group>","infra.site-null","<lob> - <group>","<lob> - <group>",5
+"Infra <system>[funct] - <group>","Infra <system>[funct] - <group>","infra.site-null","<system>[funct] - <group>","<system>[funct] - <group>",1
+"<system>[funct] - <group>","<system>[funct] - <group>","infra.site-null","<system> - <group>","<system> - <group>",5
+"P2 <system>[funct] - <group>","P2 <system>[funct] - <group>","infra.site-null","<system>[funct] - <group>","<system>[funct] - <group>",10
+"P3 <system>[funct] - <group>","P3 <system>[funct] - <group>","infra.site-null","<system>[funct] - <group>","<system>[funct] - <group>",1
+"Infra <site> <system>[funct] - <group>","Infra <site> <system>[funct] - <group>","infra.site-null","Infra <system>[funct] - <group>","Infra <system>[funct] - <group>",11
+"P1 <system>[funct] - <group>","P1 <system>[funct] - <group>","infra.site.type-null","<system>[funct] - <group>","<system>[funct] - <group>",11
+"<system> - <group>","<system> - <group>","infra.site.type-null","<lob> - <group>","<lob> - <group>",5
+"Infra <system>[funct] - <group>","Infra <system>[funct] - <group>","infra.site.type-null","<system>[funct] - <group>","<system>[funct] - <group>",1
+"<system>[funct] - <group>","<system>[funct] - <group>","infra.site.type-null","<system> - <group>","<system> - <group>",5
+"P2 <system>[funct] - <group>","P2 <system>[funct] - <group>","infra.site.type-null","<system>[funct] - <group>","<system>[funct] - <group>",10
+"P3 <system>[funct] - <group>","P3 <system>[funct] - <group>","infra.site.type-null","<system>[funct] - <group>","<system>[funct] - <group>",1
+"<site> <system>[funct] - <group>","<site> <system>[funct] - <group>","infra.site.type-null","Infra <system>[funct] - <group>","Infra <system>[funct] - <group>",11
+"<infra> <site> <system>[funct] - <group>","<infra> <site> <system>[funct] - <group>","infra.site.type-null","<site> <system>[funct] - <group>","<site> <system>[funct] - <group>",11
+"P1 <system>[funct] - <group>","P1 <system>[funct] - <group>","infra.type-null","<system>[funct] - <group>","<system>[funct] - <group>",11
+"Infra <system>[funct] - <group>","Infra <system>[funct] - <group>","infra.type-null","<system>[funct] - <group>","<system>[funct] - <group>",1
+"<system>[funct] - <group>","<system>[funct] - <group>","infra.type-null","<system> - <group>","<system> - <group>",5
+"P2 <system>[funct] - <group>","P2 <system>[funct] - <group>","infra.type-null","<system>[funct] - <group>","<system>[funct] - <group>",10
+"P3 <system>[funct] - <group>","P3 <system>[funct] - <group>","infra.type-null","<system>[funct] - <group>","<system>[funct] - <group>",1
+"<infra> <system>[funct] - <group>","<infra> <system>[funct] - <group>","infra.type-null","Infra <system>[funct] - <group>","Infra <system>[funct] - <group>",11
+"<system> - <group>","<system> - <group>","infra.type-null","<lob> - <group>","<lob> - <group>",5
+"P1 <system> - <group>","P1 <system> - <group>","simple-null","<system> - <group>","<system> - <group>",11
+"P2 <system> - <group>","P2 <system> - <group>","simple-null","<system> - <group>","<system> - <group>",10
+"P3 <system> - <group>","P3 <system> - <group>","simple-null","<system> - <group>","<system> - <group>",1

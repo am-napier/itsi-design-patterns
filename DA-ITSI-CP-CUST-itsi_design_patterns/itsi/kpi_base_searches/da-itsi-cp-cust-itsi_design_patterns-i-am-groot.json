@@ -1,0 +1,42 @@
+{
+    "actions": "",
+    "alert_lag": 0,
+    "alert_period": "1",
+    "base_search": "| `itoa_rest(\"entity\", \"type_name\", \"system_app\", \"title\")` \n| fields title | rename title as system_app\n| lookup idp_demo_states.csv system_app\n| fillnull state value=2",
+    "description": "",
+    "entity_filter_field": "system_app",
+    "entity_split_field": "system_app",
+    "identifying_name": "i.am.groot",
+    "isFirstTimeSaveDone": true,
+    "is_filter_entities_to_service": true,
+    "is_metric": false,
+    "is_split_by_entity": true,
+    "key": "67c71121b60d000e4c0794b1",
+    "metric": {
+        "metric_index": "",
+        "metric_name": ""
+    },
+    "metric_qualifier": "",
+    "metrics": [
+        {
+            "aggregate_statop": "max",
+            "entity_statop": "latest",
+            "fill_gaps": "null_value",
+            "gap_custom_alert_value": "0",
+            "gap_severity": "normal",
+            "gap_severity_color": "#99D18B",
+            "gap_severity_color_light": "#DCEFD7",
+            "gap_severity_value": "2",
+            "key": "0367b48ec306e6aac588f71e",
+            "threshold_field": "state",
+            "title": "state",
+            "unit": ""
+        }
+    ],
+    "object_type": "kpi_base_search",
+    "search_alert_earliest": "5",
+    "search_alert_earliest_custom_val": "60",
+    "sec_grp": "default_itsi_security_group",
+    "title": "i.am.groot",
+    "version": "0.0.43"
+}
