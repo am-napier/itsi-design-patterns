@@ -70,7 +70,7 @@
     "identifying_name": "i-am-groot",
     "isFirstTimeSaveDone": true,
     "is_healthscore_calculate_by_entity_enabled": 1.0,
-    "key": "i-am-groot",
+    "key": "__i_am_groot__",
     "kpis": [
         {
             "active_custom_threshold_window": "",

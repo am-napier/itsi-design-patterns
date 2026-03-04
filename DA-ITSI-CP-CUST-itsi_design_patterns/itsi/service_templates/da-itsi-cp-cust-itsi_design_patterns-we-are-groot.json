@@ -73,10 +73,10 @@
             ]
         }
     ],
-    "identifying_name": "we.are.groot",
+    "identifying_name": "we-are-groot",
     "isFirstTimeSaveDone": true,
     "is_healthscore_calculate_by_entity_enabled": 1.0,
-    "key": "we.are.groot",
+    "key": "__we_are_groot__",
     "kpis": [
         {
             "active_custom_threshold_window": "",
@@ -321,7 +321,7 @@
     "tags": [],
     "team_id": "default_itsi_security_group",
     "template_tags": [],
-    "title": "we.are.groot",
+    "title": "we-are-groot",
     "total_linked_services": 0.0,
     "version": "0.0.43"
 }

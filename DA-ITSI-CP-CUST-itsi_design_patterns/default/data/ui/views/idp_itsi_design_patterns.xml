@@ -148,8 +148,8 @@
     </input>
     <input type="text" token="template_clone_id">
       <label>Template ID (GUID) to Clone</label>
-      <default>i-am-groot</default>
-      <initialValue>i-am-groot</initialValue>
+      <default>__i_am_groot__</default>
+      <initialValue>__i_am_groot__</initialValue>
     </input>
     <input type="dropdown" token="log_level">
       <label>Logging</label>
@@ -200,12 +200,6 @@
         <choice value="create_template">1. Create Templates (confitsi)</choice>
         <choice value="reload_page">2. Reload the page</choice>
         <choice value="service_entities">3. Create Service Entities (import objects)</choice>
-        <!--
-                <option name="drilldown">cell</option>
-        <drilldown>
-          <link target="_blank">/app/itsi/idp_itsi_design_patterns/edit?form.lookup_name=idp_services-bg.csv&amp;form.updateType=upsert&amp;form.template_clone_id=i-am-groot&amp;form.log_level=none&amp;form.group=UK&amp;form.system=Games&amp;form.dd_action=create_template&amp;form.lob=BC%20Industries&amp;hideFilters=false</link>
-        </drilldown>
-        -->
         <choice value="build">4. Build Model (import objects)</choice>
         <choice value="urgency">5. Update Urgencies (confitsi)</choice>
         <choice value="clean_up">6. Cleanup (itsidelete)</choice>
