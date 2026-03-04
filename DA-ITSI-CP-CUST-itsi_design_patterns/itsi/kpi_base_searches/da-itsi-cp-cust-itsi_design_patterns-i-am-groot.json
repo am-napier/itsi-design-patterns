@@ -6,7 +6,7 @@
     "description": "",
     "entity_filter_field": "system_app",
     "entity_split_field": "system_app",
-    "identifying_name": "i.am.groot",
+    "identifying_name": "i-am-groot-svc-state",
     "isFirstTimeSaveDone": true,
     "is_filter_entities_to_service": true,
     "is_metric": false,
@@ -37,6 +37,6 @@
     "search_alert_earliest": "5",
     "search_alert_earliest_custom_val": "60",
     "sec_grp": "default_itsi_security_group",
-    "title": "i.am.groot",
+    "title": "i-am-groot-svc-state",
     "version": "0.0.43"
 }

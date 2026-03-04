@@ -6,7 +6,7 @@
     "description": "",
     "entity_filter_field": "host",
     "entity_split_field": "host",
-    "identifying_name": "infra_demo",
+    "identifying_name": "i-am-groot-infra",
     "isFirstTimeSaveDone": true,
     "is_filter_entities_to_service": true,
     "is_metric": false,
@@ -93,6 +93,6 @@
     "search_alert_earliest": "1",
     "search_alert_earliest_custom_val": "60",
     "sec_grp": "default_itsi_security_group",
-    "title": "infra_demo",
+    "title": "i-am-groot-infra",
     "version": "0.0.43"
 }
