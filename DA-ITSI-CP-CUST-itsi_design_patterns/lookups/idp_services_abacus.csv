@@ -1,4 +1,4 @@
-group,lob,t1,t2,t3,priorities,template,infra,infra_types,sites
+group,lob,t1,t2,t3,priorities,template,tech_kind,tech_stack,sites
 PRD,Open Banking,Transaction Consolidation,job 1,,1,demo-batch-job,type.site,"batch,database","DC-1,DC-2"
 PRD,Open Banking,Transaction Consolidation,job 2,,1,demo-batch-job,type.site,"batch,database","DC-1,DC-2"
 PRD,Open Banking,Transaction Consolidation,job 3,,1,demo-batch-job,type.site,"batch,database","DC-1,DC-2"

@@ -1,0 +1,9 @@
+child,tech_kind,parent,urgency
+"Tech-Svcs <tiers> - <group>",basic,"<tiers> - <group>",1
+"Tech-Svcs <tiers> - <group>",type,"<tiers> - <group>",1
+"Tech-Svcs <tiers> - <group>",site,"<tiers> - <group>",1
+"Tech-Svcs <tiers> - <group>",type.site,"<tiers> - <group>",1
+"<site> <tiers> - <group>",site,"Tech-Svcs <tiers> - <group>",11
+"<type> <tiers> - <group>",type,"Tech-Svcs <tiers> - <group>",11
+"<site> <tiers> - <group>","type.site","Tech-Svcs <tiers> - <group>",11
+"<type> <site> <tiers> - <group>","type.site","<site> <tiers> - <group>",11
