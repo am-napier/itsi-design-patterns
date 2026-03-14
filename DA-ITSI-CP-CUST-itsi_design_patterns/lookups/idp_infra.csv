@@ -1,9 +1,0 @@
-child,infra,parent,urgency
-"Infra <tiers> - <group>",basic,"<tiers> - <group>",1
-"Infra <tiers> - <group>",type,"<tiers> - <group>",1
-"Infra <tiers> - <group>",site,"<tiers> - <group>",1
-"Infra <tiers> - <group>",type.site,"<tiers> - <group>",1
-"<site> <tiers> - <group>",site,"Infra <tiers> - <group>",11
-"<type> <tiers> - <group>",type,"Infra <tiers> - <group>",11
-"<site> <tiers> - <group>","type.site","Infra <tiers> - <group>",11
-"<type> <site> <tiers> - <group>","type.site","<site> <tiers> - <group>",11

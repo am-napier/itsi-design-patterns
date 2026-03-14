@@ -217,7 +217,7 @@
            savedsearch idp_base lookup=$lookup_name$ lob="$lob$" system="$system$" group="$group$"  | fields template_name | dedup template_name | where len(template_name) &gt; 0
             | lookup itsi_service_template_sync_status_lookup title as template_name OUTPUT _key as key_found
             | where isnull(key_found) ``` templates that dont exist ```
-            | eval payload=json_object("title", template_name, "_key", lower(replace(template_name, "\s+", "_")), "base_service_template_id", "$template_clone_id$")
+            | eval payload=json_object("title", template_name, "_key", "__".lower(replace(template_name, "[\s\-\.]+", "_"))."__", "base_service_template_id", "$template_clone_id$")
             | confitsi type=base_service_template is_bulk=0 is_update=0 is_partial=0 $comment$ confirm=1 $comment$</set>
           </condition>
           <condition value="urgency">

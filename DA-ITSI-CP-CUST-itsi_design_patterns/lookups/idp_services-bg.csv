@@ -1,4 +1,4 @@
-group,lob,t1,t2,t3,template,infra,infra_types,sites,priorities,x
+group,lob,t1,t2,t3,template,tech_kind,tech_stack,sites,priorities,x
 UK,BC Industries,Payments,,,bg-payments,,,,0,bg-payments
 UK,BC Industries,CRM,,,bg-crm,,,,"1,2,3",bg-crm
 UK,BC Industries,Games,Desktop,,bg-games,type,"web,app,db",,"1,2,3",bg-games

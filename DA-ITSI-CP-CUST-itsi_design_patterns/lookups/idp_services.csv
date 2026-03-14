@@ -1,4 +1,4 @@
-group,lob,t1,t2,t3,priorities,template,infra,infra_types,sites
+group,lob,t1,t2,t3,priorities,template,tech_kind,tech_stack,sites
 INF,LOB-infra,T1-basic,two,333,1,inf-basic,basic,lnx,
 INF,LOB-infra,T1-site,T-Two,,"1,2,3",inf-site,site,groot,"dc-1,dc-2"
 INF,LOB-infra,T1-type,T-Two,T-three,0,inf-type,type,"groot,db",

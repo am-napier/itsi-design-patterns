@@ -1,4 +1,4 @@
-﻿group,lob,t1,t2,t3,infra,sites,infra_types,priorities,template
+﻿group,lob,t1,t2,t3,infra,tech_kind,tech_stack,priorities,template
 Prod,Splunk,Search,Adhoc-1,site-a,basic,,splk,"1,2",splk-mon-search
 Prod,Splunk,Search,Adhoc-1,site-b,basic,,splk,"1,2",splk-mon-search
 Prod,Splunk,Search,Adhoc-1,deployer,basic,,splk,"1,2",splk-mon-srch-deployer

@@ -1,4 +1,4 @@
-child,infra,parent,tier,urgency
+child,Tech-Svcs,parent,tier,urgency
 "<tier 1> - <group>",,"<line of business> - <group>","*",11
 "<tier 2> (<tier 1>) - <group>",,"<tier 1> - <group>",t2,11
 "<tier 3> (<tier 2> <tier1>) - <group>",,"<tier 2> (<tier 1>) - <group>",t2,11
@@ -11,8 +11,8 @@ child,infra,parent,tier,urgency
 "P1 <tiers> - <group>",,"<tier 3> (<tier 2> <tier1>) - <group>",t3,11
 "P2 <tiers> - <group>",,"<tier 3> (<tier 2> <tier1>) - <group>",t3,10
 "P3 <tiers> - <group>",,"<tier 3> (<tier 2> <tier1>) - <group>",t3,3
-"Infra <tiers> - <group>","*","<tiers> - <group>",,1
-"<site> <tiers> - <group>",site,"Infra <tiers> - <group>",,11
-"<infra type> <tiers> - <group>",type,"Infra <tiers> - <group>",,11
-"<site> <tiers> - <group>","type.site","Infra <tiers> - <group>",,11
-"<infra type> <site> <tiers> - <group>","type.site","<site> <tiers> - <group>",,11
+"Tech-Svcs <tiers> - <group>","*","<tiers> - <group>",,1
+"<site> <tiers> - <group>",site,"Tech-Svcs <tiers> - <group>",,11
+"<Tech-Svcs type> <tiers> - <group>",type,"Tech-Svcs <tiers> - <group>",,11
+"<site> <tiers> - <group>","type.site","Tech-Svcs <tiers> - <group>",,11
+"<Tech-Svcs type> <site> <tiers> - <group>","type.site","<site> <tiers> - <group>",,11
