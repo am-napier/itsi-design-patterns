@@ -1,8 +1,8 @@
 tag,template
-db,i-am-groot-infra-db
 batch,i-am-groot-infra
-database,i-am-groot-infra-db
-lnx,we-are-groot
-win,we-are-groot-two
+db,i-am-groot-db
+database,i-am-groot-db
+lnx,i-am-groot-infra
+win,we-are-groot-win
 groot,i-am-groot-infra
 appd,i-am-groot-appd

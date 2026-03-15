@@ -6,7 +6,7 @@
     set_template_filter - generates a token that is used by itsiimportobjects to set the entity filter in the service template import
   -->
   <search id="service_tree">
-    <query>| savedsearch idp_base lookup=$lookup_name$ lob=$lob|s$ group=$group|s$ system=$system|s$</query>
+    <query>| savedsearch idp_base_v2 lookup=$lookup_name$ lob=$lob|s$ group=$group|s$ tier_1=$tier_1|s$ tier_2=$tier_2|s$ tier_3=$tier_3|s$</query>
   </search>
   <search base="service_tree" id="set_template_filter_string">
     <query>
@@ -73,7 +73,7 @@
   </row-->
   <fieldset submitButton="false" autoRun="false">
     <input type="dropdown" token="lookup_name" searchWhenChanged="false">
-      <label>Source</label>
+      <label>Source Lookup</label>
       <default>idp_services.csv</default>
       <initialValue>idp_services.csv</initialValue>
       <fieldForLabel>title</fieldForLabel>
@@ -116,19 +116,53 @@
       <!--default>*</default>
       <initialValue>*</initialValue-->
       <change>
-        <unset token="form.system"></unset>
+        <!--unset token="form.system"></unset-->
+        <unset token="form.tier_1"></unset>
         <unset token="template_filter_regex"></unset>
         <unset token="template_filter_config"></unset>
         <unset token="template_filter_config_complete"></unset>
       </change>
     </input>
-    <input type="dropdown" token="system" searchWhenChanged="true">
-      <label>Systems</label>
+    <input type="dropdown" token="tier_1" searchWhenChanged="true">
+      <label>Tier 1</label>
       <fieldForLabel>t1</fieldForLabel>
       <fieldForValue>t1</fieldForValue>
       <search>
-        <query>| inputlookup $lookup_name$  where lob=$lob|s$ AND group=$group|s$
-| dedup t1</query>
+        <query>| inputlookup $lookup_name$  where lob=$lob|s$ AND group=$group|s$ | dedup t1</query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+      <choice value="*">All</choice>
+      <change>
+        <unset token="form.dd_action"></unset>
+        <unset token="form.tier_2"></unset>
+      </change>
+      <default>*</default>
+      <initialValue>*</initialValue>
+    </input>
+    <input type="dropdown" token="tier_2" searchWhenChanged="true">
+      <label>Tier 2</label>
+      <fieldForLabel>t2</fieldForLabel>
+      <fieldForValue>t2</fieldForValue>
+      <search>
+        <query>| inputlookup $lookup_name$  where lob=$lob|s$ AND group=$group|s$ AND t1=$tier_1|s$ | dedup t2</query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+      <choice value="*">All</choice>
+      <change>
+        <unset token="form.dd_action"></unset>
+        <unset token="form.tier_3"></unset>
+      </change>
+      <default>*</default>
+      <initialValue>*</initialValue>
+    </input>
+    <input type="dropdown" token="tier_3" searchWhenChanged="true">
+      <label>Tier 3</label>
+      <fieldForLabel>t3</fieldForLabel>
+      <fieldForValue>t3</fieldForValue>
+      <search>
+        <query>| inputlookup $lookup_name$  where lob=$lob|s$ AND group=$group|s$ AND t1=$tier_1|s$ AND t2=$tier_2|s$ | dedup t3</query>
         <earliest>-24h@h</earliest>
         <latest>now</latest>
       </search>
@@ -138,18 +172,6 @@
       </change>
       <default>*</default>
       <initialValue>*</initialValue>
-    </input>
-    <input type="dropdown" token="updateType" searchWhenChanged="false">
-      <label>Update Type (entity only)</label>
-      <choice value="replace">Replace</choice>
-      <choice value="upsert">Upsert</choice>
-      <default>upsert</default>
-      <initialValue>upsert</initialValue>
-    </input>
-    <input type="text" token="template_clone_id">
-      <label>Template ID (GUID) to Clone</label>
-      <default>__i_am_groot__</default>
-      <initialValue>__i_am_groot__</initialValue>
     </input>
     <input type="dropdown" token="log_level">
       <label>Logging</label>
@@ -203,6 +225,7 @@
         <choice value="build">4. Build Model (import objects)</choice>
         <choice value="urgency">5. Update Urgencies (confitsi)</choice>
         <choice value="clean_up">6. Cleanup (itsidelete)</choice>
+        <choice value="demo_entities">7. Demo Entities (import objects)</choice>
         <default>view</default>
         <initialValue>view</initialValue>
         <change>
@@ -214,7 +237,7 @@
           </condition>
           <condition value="create_template">
             <set token="action_body">``` Generates CURL that clones the service template with the given id ```
-           savedsearch idp_base lookup=$lookup_name$ lob="$lob$" system="$system$" group="$group$"  | fields template_name | dedup template_name | where len(template_name) &gt; 0
+           savedsearch idp_base_v2 lookup=$lookup_name$ group="$group$" lob="$lob$" tier_1="$tier_1$" tier_2=$tier_2|s$ tier_3=$tier_3|s$ | fields template_name | dedup template_name | where len(template_name) &gt; 0
             | lookup itsi_service_template_sync_status_lookup title as template_name OUTPUT _key as key_found
             | where isnull(key_found) ``` templates that dont exist ```
             | eval payload=json_object("title", template_name, "_key", "__".lower(replace(template_name, "[\s\-\.]+", "_"))."__", "base_service_template_id", "$template_clone_id$")
@@ -242,7 +265,7 @@
           </condition>
           <condition value="build">
             <set token="action_body">``` Generates the selected services ```
-              savedsearch idp_base lookup=$lookup_name$ group=$group|s$ lob=$lob|s$ system=$system|s$ 
+              savedsearch idp_base_v2 lookup=$lookup_name$ group=$group|s$ lob=$lob|s$ tier_1=$tier_1|s$ tier_2=$tier_2|s$ tier_3=$tier_3|s$
                $comment$
                   | itsiimportobjects
                     serviceTagsFields="tag1,tag2,tag3,tag4,tag5,tag6"
@@ -256,7 +279,7 @@
           </condition>
           <condition value="service_entities">
             <set token="action_body">``` Generates the entities for the selected applications services```
-              savedsearch idp_base lookup=$lookup_name$ group=$group|s$ lob=$lob|s$ system=$system|s$
+              savedsearch idp_base_v2 lookup=$lookup_name$ group=$group|s$ lob=$lob|s$ tier_1=$tier_1|s$ tier_2=$tier_2|s$ tier_3=$tier_3|s$
                | where isnotnull(template_name)
                | dedup system_app
                $comment$
@@ -275,13 +298,42 @@
               <![CDATA[ makeresults | eval run_this_spl="
 ``` <WARN>Run this SPL but double check your backup is in good order as you might need it.  </WARN>```
 | union 
-[| itsidelete type=entity field=system_app pattern=\"($lob$|$system$).+ABC$\" confirm=1]
-[| itsidelete type=service field=title pattern=\"($lob$|$system$).+ABC$\" confirm=1]
+[| itsidelete type=entity field=system_app pattern=\"($lob$|$tier_1$).+ABC$\" confirm=1]
+[| itsidelete type=service field=title pattern=\"($lob$|$tier_1$).+ABC$\" confirm=1]
 [| itsidelete type=base_service_template field=title pattern=\"^TO_BE_COMPLETED$\"  confirm=1]
 "]]>
             </set>
           </condition>
+          <condition value="demo_entities">
+            <set token="action_body">
+              <![CDATA[ makeresults count=10 | streamstats c | eval tech=split("lnx,win", ",") | mvexpand tech
+
+| eval "mtx:cpu"=20+c+random()%10, "mtx:mem"=60-c+random()%10, "mtx:disk"=60+c+random()%10, "mtx:oi_write"=10+random()%10, "mtx:io_read"=3+random()%3
+| eval lob="BC Industries", system="Games", app="", group="Demo", site="", tech_type=tech, function="Games", host=tech."-".c
+    $comment$      | itsiimportobjects
+                    entityFieldMapping=""
+                    entityIdentifierFields=""
+                    entityInformationalFields="group,system,app,lob,type_name,function,tech_type,node_type"    
+                    entityMergeField="host"
+                    entityTitleField="host"
+                    entityTypeField="" 
+                    updateType=replace $comment$
+]]>
+            </set>
+          </condition>
         </change>
+      </input>
+      <input type="text" token="template_clone_id">
+        <label>Template ID (GUID) to Clone</label>
+        <default>__i_am_groot__</default>
+        <initialValue>__i_am_groot__</initialValue>
+      </input>
+      <input type="dropdown" token="updateType" searchWhenChanged="false">
+        <label>Update Type (entity only)</label>
+        <choice value="replace">Replace</choice>
+        <choice value="upsert">Upsert</choice>
+        <default>upsert</default>
+        <initialValue>upsert</initialValue>
       </input>
     </panel>
   </row>
@@ -329,8 +381,8 @@
             <td>$lob|s$</td>
           </tr>
         <tr>
-            <td>system</td>
-            <td>$system|s$</td>
+            <td>Tier 1</td>
+            <td>$tier_1|s$</td>
           </tr>
       </table>
       </html>
@@ -420,7 +472,7 @@
 | stats values(*) as * by parent
 | eval tags=mvappend(tag1, tag2, tag3, tag4, tag5, mvjoin(tag6, "
 "))
-| eval fields=split(printf("lob:         %s|group:       %s|site:        %s|system:      %s|app :        %s|function:    %s|urgency:     %s", lob,group,site,system,app,function,urgency), "|")
+| eval fields=split(printf("lob:         %s|group:       %s|site:        %s|tier_1:      %s|app :        %s|function:    %s|urgency:     %s", lob,group,site,tier_1,app,function,urgency), "|")
 | table parent* template_name child* tags pattern fields 
 | transpose</query>
         </search>
