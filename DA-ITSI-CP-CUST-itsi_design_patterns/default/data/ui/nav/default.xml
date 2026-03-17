@@ -1,0 +1,10 @@
+<nav search_view="search" color="#E1918A">
+  <view name="search" default="true" />
+  <collection name="Dashboards">
+	  <view name="idp_itsi_design_patterns" />
+	  <view name="idp_itsi_design_patterns_curl" />
+	  <divider />
+	  <view name="dashboards" />
+  </collection>
+  <view name="reports" />
+</nav>
