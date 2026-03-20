@@ -51,7 +51,7 @@
 makeresults 
 | eval clonetarget=mvdedup(split("$template_clone_id$|$p1_template_clone_id$|$p2_template_clone_id$|$p3_template_clone_id$","|"))
 | mvexpand clonetarget 
-| lookup itsi_service_template_sync_status_lookup title as clonetarget OUTPUT sync_status
+| lookup itsi_service_template_sync_status_lookup _key as clonetarget OUTPUT sync_status
 | where isnotnull(clonetarget) AND (isnull(sync_status) OR len(sync_status)&lt;1)
 | stats count values(clonetarget) as missingtemplates
 | where count>0
