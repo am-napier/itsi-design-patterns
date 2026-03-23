@@ -452,8 +452,8 @@ Once the scope of the command is confirmed replace the -X GET with -X DELETE and
       </input>
       <input type="text" token="template_clone_id">
         <label>Template ID (GUID) to Clone</label>
-        <default>i.am.groot</default>
-        <initialValue>i.am.groot</initialValue>
+        <default>__i_am_groot__</default>
+        <initialValue>__i_am_groot__</initialValue>
         <change>
           <condition>
             <set token="trigger_template_check">true</set>
@@ -644,13 +644,13 @@ Once the scope of the command is confirmed replace the -X GET with -X DELETE and
         <option name="dendrogram_viz.dendrogram_viz.label_size">10</option>
         <option name="dendrogram_viz.dendrogram_viz.layout">vertical</option>
         <option name="dendrogram_viz.dendrogram_viz.linkcolor">#555555</option>
-        <option name="dendrogram_viz.dendrogram_viz.max_rows">1000</option>
-        <option name="dendrogram_viz.dendrogram_viz.node_ancestor_spacing">60</option>
+        <option name="dendrogram_viz.dendrogram_viz.max_rows">2000</option>
+        <option name="dendrogram_viz.dendrogram_viz.node_ancestor_spacing">70</option>
         <option name="dendrogram_viz.dendrogram_viz.node_sibling_spacing">45</option>
         <option name="dendrogram_viz.dendrogram_viz.node_size">8</option>
         <option name="dendrogram_viz.dendrogram_viz.nodecolor">#999999</option>
         <option name="dendrogram_viz.dendrogram_viz.radius">300</option>
-        <option name="dendrogram_viz.dendrogram_viz.tidy">no</option>
+        <option name="dendrogram_viz.dendrogram_viz.tidy">yes</option>
         <option name="dendrogram_viz.dendrogram_viz.zoom">no</option>
         <option name="drilldown">all</option>
         <option name="height">691</option>

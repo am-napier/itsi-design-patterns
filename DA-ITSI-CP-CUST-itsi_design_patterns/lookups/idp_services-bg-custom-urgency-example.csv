@@ -1,0 +1,7 @@
+group,lob,t1,t2,t3,urgency_override,template,tech_kind,tech_stack,sites,priorities,x
+UK,BC Industries,NextGenGames,,,1,,,,,,
+UK,BC Industries,NextGenGames,Desktop,,1,bg-games,type,"web,app,db",,"1,2,3",bg-games
+UK,BC Industries,NextGenGames,Mobile,Design,10,bg-games-mobile-design,,,,2,bg-games-mobile-design
+UK,BC Industries,NextGenGames,Mobile,,,bg-games-mobile,type.site,k8s,"dc1,dc2","1,2",bg-games-mobile
+UK,BC Industries,NextGenGames,Mobile,Catalogue,10,bg-games-mobile-catalogue,basic,db,,1,bg-games-mobile-catalogue
+UK,BC Industries,NextGenGames,Mobile,Runtime,,bg-games-mobile-runtime,,,,"1,3",bg-games-mobile-runtime
