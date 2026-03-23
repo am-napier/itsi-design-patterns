@@ -452,8 +452,8 @@ Once the scope of the command is confirmed replace the -X GET with -X DELETE and
       </input>
       <input type="text" token="template_clone_id">
         <label>Template ID (GUID) to Clone</label>
-        <default>i.am.groot</default>
-        <initialValue>i.am.groot</initialValue>
+        <default>__i_am_groot__</default>
+        <initialValue>__i_am_groot__</initialValue>
         <change>
           <condition>
             <set token="trigger_template_check">true</set>
