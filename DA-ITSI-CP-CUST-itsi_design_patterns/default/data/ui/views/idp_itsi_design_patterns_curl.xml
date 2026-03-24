@@ -13,7 +13,6 @@
     <unset token="trigger_template_filter_build"></unset>
     <unset token="template_filter_config"></unset>
     <unset token="template_filter_config_error"></unset>
-    <unset token="template_notfound_error"></unset>
     <set token="template_filter_config_complete">false</set>
     <set token="comment">```</set>
   </init>
@@ -46,25 +45,13 @@
       </condition>
     </done>
   </search>
-  <search id="check_clone_templates" depends="$lob$">
-    <query>| ``` validate configured templates ``` 
-makeresults 
-| eval clonetarget=mvdedup(split("$template_clone_id$|$p1_template_clone_id$|$p2_template_clone_id$|$p3_template_clone_id$","|"))
-| mvexpand clonetarget 
-| lookup itsi_service_template_sync_status_lookup _key as clonetarget OUTPUT sync_status
-| where isnotnull(clonetarget) AND (isnull(sync_status) OR len(sync_status)&lt;1)
-| stats count values(clonetarget) as missingtemplates
-| where count>0
-| eval result=if(count>0, printf("%s of the configured templates required for template creation not found in ITSI (%s)",count, mvjoin(missingtemplates,",")), null())
+  <search id="template_lookup" depends="$lob$">
+    <query>| ``` templates lookup for inputs ``` 
+inputlookup itsi_service_template_sync_status_lookup
+| dedup _key
+| fields _key, title
+| eval id=_key
     </query>
-    <done>
-      <condition match="$job.resultCount$ > 0">
-        <set token="template_notfound_error">$result.result$</set>
-      </condition>
-      <condition>
-        <unset token="template_notfound_error"></unset>
-      </condition>
-    </done>
   </search>
   <search id="service_tree" depends="$validation_pass$">
     <query>| savedsearch idp_base_v2 lookup=$lookup_name$ lob=$lob|s$ group=$group|s$ tier_1=$tier_1|s$ tier_2=$tier_2|s$ tier_3=$tier_3|s$</query>
@@ -450,38 +437,51 @@ Once the scope of the command is confirmed replace the -X GET with -X DELETE and
         <default>upsert</default>
         <initialValue>upsert</initialValue>
       </input>
-      <input type="text" token="template_clone_id">
-        <label>Template ID (GUID) to Clone</label>
-        <default>__i_am_groot__</default>
-        <initialValue>__i_am_groot__</initialValue>
+      <input type="dropdown" token="template_clone_id">
+        <label>Default template:</label>
         <change>
           <condition>
             <set token="trigger_template_check">true</set>
           </condition>
         </change>
+        <fieldForLabel>title</fieldForLabel>
+        <fieldForValue>id</fieldForValue>
+        <search base="template_lookup">
+          <query>| table title, id</query>
+        </search>
+        <default>__i_am_groot__</default>
+        <initialValue>__i_am_groot__</initialValue>
       </input>
-      <input type="text" token="p1_template_clone_id">
-        <label>P1 Template ID (GUID) to Clone</label>
+      <input type="dropdown" token="p1_template_clone_id">
+        <label>Template for P1 Services</label>
         <default>$template_clone_id$</default>
         <initialValue>$template_clone_id$</initialValue>
+        <fieldForLabel>title</fieldForLabel>
+        <fieldForValue>id</fieldForValue>
+        <search base="template_lookup">
+          <query>| table title, id</query>
+        </search>
       </input>
-      <input type="text" token="p2_template_clone_id">
-        <label>P2 Template ID (GUID) to Clone</label>
+      <input type="dropdown" token="p2_template_clone_id">
+        <label>Template for P2 Services</label>
         <default>$template_clone_id$</default>
         <initialValue>$template_clone_id$</initialValue>
+        <fieldForLabel>title</fieldForLabel>
+        <fieldForValue>id</fieldForValue>
+        <search base="template_lookup">
+          <query>| table title, id</query>
+        </search>
       </input>
-      <input type="text" token="p3_template_clone_id">
-        <label>P3 Template ID (GUID) to Clone</label>
+      <input type="dropdown" token="p3_template_clone_id">
+        <label>Template for P3 Services</label>
         <default>$template_clone_id$</default>
         <initialValue>$template_clone_id$</initialValue>
+        <fieldForLabel>title</fieldForLabel>
+        <fieldForValue>id</fieldForValue>
+        <search base="template_lookup">
+          <query>| table title, id</query>
+        </search>
       </input>
-    </panel>
-  </row>
-  <row depends="$template_notfound_error$">
-    <panel>
-      <html>
-        <div style="font-style:bold;line-height:0.75;color:red;font-size:120%">WARNING!<br/>$template_notfound_error$</div>
-      </html>
     </panel>
   </row>
   <row depends="$template_filter_config_error$">
@@ -577,10 +577,6 @@ Once the scope of the command is confirmed replace the -X GET with -X DELETE and
         <tr class="idp">
             <td>Lookup Validation</td>
             <td>Pass: $validation_pass$ - Fail: $validation_fail$ panel: $show_validation$</td>
-          </tr>
-        <tr class="idp">
-            <td>Clone Template Check Error</td>
-            <td>$template_notfound_error$</td>
           </tr>
         <tr class="idp">
             <td>Template Clone ID</td>
