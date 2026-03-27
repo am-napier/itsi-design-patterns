@@ -365,7 +365,7 @@ $comment$</set>
             <set token="action_body">
               <![CDATA[``` Generated payload to set the KPI urgency for the named services ``` 
             `itoa_rest("service", "title", "^($service_filter_regex$)$", "_key,title,services_depends_on,service_tags")` 
-            | eval urg_tag=spath(value, "service_tags.tags{}")```, p=spath(value, "services_depending_on_me{}") | mvexpand p | fields - value```
+            | eval urg_tag=coalesce(spath(value, "service_tags.tags{}"), "")
             | mvexpand urg_tag
             | search urg_tag=urg:*
             | rex field=urg_tag "^urg:(?<child>.+):(?<urgency>\d+)$"
@@ -377,8 +377,10 @@ $comment$</set>
             | stats values(link) as link by id, title
             | eval payload=json_object("_key", id, "title", title, "services_depends_on", json(printf("[%s]", mvjoin(link, ","))))
             `get_payload`
+            | fields - payload
             | eval curl=printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/service/bulk_update?is_partial_data=1' -H \"Content-Type:application/json\" -X POST -d '%s';", "$curl_cmd$", "$itsi_uri$", payload)
-            | table curl
+            | appendpipe [ | stats c | where c==0 | eval curl=case(isnull(value) OR len(value)<1, "No inscope services found, check success of 3. Build Model (import objects)") ]
+            | rename curl as "Service urgency update CURL commands to execute:"
           ]]>
             </set>
           </condition>
@@ -413,11 +415,11 @@ $comment$</set>
 | lookup service_telemetry_lookup base_service_template_id as key_found OUTPUT title
 | eval othersvcfound=mvmap(title,if(!match(title,"(.servicelist.)"), "other", null()))
 | search NOT othersvcfound=*
-| stats values(host) as host values(crl) as crl values(key_found) as templateid
+| stats c as templatecount values(host) as host values(crl) as crl values(key_found) as templateid
 | eval template_filter_regex=mvjoin(templateid,"|"),
-       templatecmd=if(mvcount(split(template_filter_regex,"|"))>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/entity?filter=\{\"title\":\{\"$regex\":\"^(%s)$\"\}\}' -X GET", crl, host, template_filter_regex), ""),
+       templatecmd=if(mvcount(split(template_filter_regex,"|"))>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/base_service_template?filter=\{\"title\":\{\"$regex\":\"^(%s)$\"\}\}' -X GET", crl, host, template_filter_regex), ""),
        entitycmd=if(mvcount(split("$entity_filter_regex$","|"))>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/entity?filter=\{\"title\":\{\"$regex\":\"^($entity_filter_regex$)$\"\}\}' -X GET", crl, host), ""),
-       servicecmd=if(mvcount(split("$service_filter_regex$","|"))>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/entity?filter=\{\"title\":\{\"$regex\":\"^($service_filter_regex$)$\"\}\}' -X GET", crl, host), ""),
+       servicecmd=if(mvcount(split("$service_filter_regex$","|"))>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/service?filter=\{\"title\":\{\"$regex\":\"^($service_filter_regex$)$\"\}\}' -X GET", crl, host), ""),
        EXECUTE_WITH_CARE=printf("WARNING:
 Execute these commands with care. By default each command performs a GET, check the output and double check your ITSI backup before proceeding.  
 Once the scope of the command is confirmed replace the -X GET with -X DELETE and execute:
