@@ -75,12 +75,13 @@ inputlookup itsi_service_template_sync_status_lookup
   <search base="service_tree" id="set_svc_title_list">
     <query>
       | appendpipe [ | where isnotnull(child) | rename child as parent ]
-      | rex field=parent mode=sed "s/[()]/./g"
-      | stats values(parent) as filter | eval filter=mvjoin(filter, "|")
+      | eval regexstr=replace(parent,"[\[\(\)\]\s]",".")
+      | stats values(eval(case(isnotnull(template_name),regexstr))) as entityfilter, values(regexstr) as svcfilter
+      | foreach *filter [ eval &lt;&lt;FIELD&gt;&gt;=mvjoin(&lt;&lt;FIELD&gt;&gt;, "|") ]
     </query>
     <done>
-      <set token="service_filter_regex">$result.filter$</set>
-      <set token="entity_filter_regex">$result.filter$</set>
+      <set token="service_filter_regex">$result.svcfilter$</set>
+      <set token="entity_filter_regex">$result.entityfilter$</set>
     </done>
   </search>
   <search id="set_template_filter" depends="$trigger_template_filter_build$">
@@ -377,8 +378,8 @@ $comment$</set>
             | stats values(link) as link by id, title
             | eval payload=json_object("_key", id, "title", title, "services_depends_on", json(printf("[%s]", mvjoin(link, ","))))
             `get_payload`
-            | fields - payload
             | eval curl=printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/service/bulk_update?is_partial_data=1' -H \"Content-Type:application/json\" -X POST -d '%s';", "$curl_cmd$", "$itsi_uri$", payload)
+            | fields curl
             | appendpipe [ | stats c | where c==0 | eval curl=case(isnull(value) OR len(value)<1, "No inscope services found, check success of 3. Build Model (import objects)") ]
             | rename curl as "Service urgency update CURL commands to execute:"
           ]]>
@@ -413,20 +414,22 @@ $comment$</set>
 | mvexpand templatelist 
 | lookup itsi_service_template_sync_status_lookup title as templatelist OUTPUT _key as key_found
 | lookup service_telemetry_lookup base_service_template_id as key_found OUTPUT title
-| eval othersvcfound=mvmap(title,if(!match(title,"(.servicelist.)"), "other", null()))
+| eval othersvcfound=mvmap(title,if(!match(title,"^(.$service_filter_regex$.)$"), "true", null()))
 | search NOT othersvcfound=*
-| stats c as templatecount values(host) as host values(crl) as crl values(key_found) as templateid
+| stats c(eval(isnotnull(templateid))) as templatecount values(host) as host values(crl) as crl values(key_found) as templateid
 | eval template_filter_regex=mvjoin(templateid,"|"),
-       templatecmd=if(mvcount(split(template_filter_regex,"|"))>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/base_service_template?filter=\{\"title\":\{\"$regex\":\"^(%s)$\"\}\}' -X GET", crl, host, template_filter_regex), ""),
-       entitycmd=if(mvcount(split("$entity_filter_regex$","|"))>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/entity?filter=\{\"title\":\{\"$regex\":\"^($entity_filter_regex$)$\"\}\}' -X GET", crl, host), ""),
-       servicecmd=if(mvcount(split("$service_filter_regex$","|"))>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/service?filter=\{\"title\":\{\"$regex\":\"^($service_filter_regex$)$\"\}\}' -X GET", crl, host), ""),
+       templatecmd=if(mvcount(split(template_filter_regex,"|"))>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/base_service_template?filter=\{\"_key\":\{\"$regex\":\"^(%s)$\"\}\}' -X GET", crl, host, template_filter_regex), "No templates qualify for deletion"),
+       entitycmd=if(mvcount(split("$entity_filter_regex$","|"))>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/entity?filter=\{\"title\":\{\"$regex\":\"^($entity_filter_regex$)$\"\}\}' -X GET", crl, host), "No entities found in config"),
+       servicecmd=if(mvcount(split("$service_filter_regex$","|"))>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/service?filter=\{\"title\":\{\"$regex\":\"^($service_filter_regex$)$\"\}\}' -X GET", crl, host), "No services found in config"),
        EXECUTE_WITH_CARE=printf("WARNING:
 Execute these commands with care. By default each command performs a GET, check the output and double check your ITSI backup before proceeding.  
 Once the scope of the command is confirmed replace the -X GET with -X DELETE and execute:
 
 %s;
 %s;
-%s;", entitycmd, servicecmd, templatecmd)
+%s;
+ 
+", entitycmd, servicecmd, templatecmd)
 | table EXECUTE_WITH_CARE ]]>
             </set>
           </condition>
@@ -546,14 +549,13 @@ Once the scope of the command is confirmed replace the -X GET with -X DELETE and
             <td>$template_filter_regex$</td>
           </tr>
         <tr class="idp">
-            <td>Service Title Filter</td>
+            <td>Service Title Regex Filter</td>
             <td>$service_filter_regex$</td>
-          </tr>entity_filter_regex
+          </tr>
         <tr class="idp">
-            <td>Service Entity Title Filter</td>
+            <td>Entity Title Regex Filter</td>
             <td>$entity_filter_regex$</td>
           </tr>
-
       </table>
       </html>
     </panel>
@@ -642,7 +644,7 @@ Once the scope of the command is confirmed replace the -X GET with -X DELETE and
         <option name="dendrogram_viz.dendrogram_viz.label_size">10</option>
         <option name="dendrogram_viz.dendrogram_viz.layout">vertical</option>
         <option name="dendrogram_viz.dendrogram_viz.linkcolor">#555555</option>
-        <option name="dendrogram_viz.dendrogram_viz.max_rows">2000</option>
+        <option name="dendrogram_viz.dendrogram_viz.max_rows">2500</option>
         <option name="dendrogram_viz.dendrogram_viz.node_ancestor_spacing">70</option>
         <option name="dendrogram_viz.dendrogram_viz.node_sibling_spacing">45</option>
         <option name="dendrogram_viz.dendrogram_viz.node_size">8</option>
@@ -666,13 +668,22 @@ Once the scope of the command is confirmed replace the -X GET with -X DELETE and
       <table>
         <title>Proposed Service Config - if created</title>
         <search base="service_tree">
-          <query>| search parent="$clicked$"
-| stats values(*) as * by parent
-| eval tags=mvappend(tag1, tag2, tag3, tag4, tag5, mvjoin(tag6, "
-"))
-| eval fields=split(printf("lob:         %s|group:       %s|site:        %s|tier_1:      %s|app :        %s|function:    %s|urgency:     %s", lob,group,site,tier_1,app,function,urgency), "|")
-| table parent* template_name child* tags pattern fields 
-| transpose</query>
+          <query>| search parent="$clicked$" OR child="$clicked$"
+| fillnull value="None" child template_name
+| dedup child, parent, tier
+| stats values(eval(case(child!="$clicked$", child))) as child,
+        values(eval(if(child=="$clicked$",urgency, null()))) as urgency, 
+        values(eval(case(parent=="$clicked$",template_name))) as template_name
+        values(tag*) as tag*
+        values(eval(if(child=="$clicked$",null(), tag6))) as tag6
+| eval tags=mvappend(tag1, tag2, tag3, tag4, tag5),
+       fields=mvmap(tags,printf("%-9s%s", printf("%s:",mvindex(split(tags,":"),0)), mvindex(split(tags,":"),1))),      
+       fields=mvappend(fields,printf("urgency: %s",urgency)),
+       tags=mvappend(tags,tag6)
+| fields template_name child fields tags
+| transpose
+| rename "row 1" as value
+          </query>
         </search>
         <option name="count">100</option>
         <option name="drilldown">none</option>
@@ -698,9 +709,7 @@ Once the scope of the command is confirmed replace the -X GET with -X DELETE and
 | eval children=coalesce(child."::".urgency, c2)
 | eval "tags"=spath(value, "service_tags.tags{}") 
 | lookup itsi_service_template_sync_status_lookup _key as template_id OUTPUT title as template_name
-| fields - _* splunk_server value
-| table title service_id template* er tags children
-
+| fields title service_id template* er tags children
 | mvexpand er
 | eval entity_rule_items=spath(er, "rule_items{}") | mvexpand entity_rule_items
 | eval entity_rules=printf("%s:%s %s %s",  upper(spath(entity_rule_items, "field_type")), spath(entity_rule_items, "field"), 
