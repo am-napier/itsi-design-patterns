@@ -360,7 +360,7 @@ $comment$</set>
                               isnull(key_found), defaulttmplt),
        curl_to_run=if(isnull(key_found), printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/base_service_template' -H \"Content-Type:application/json\" -X POST -d '{\"title\": \"%s\",\"_key\": \"__%s__\",\"base_service_template_id\": \"%s\"}';", "$curl_cmd$", "$itsi_uri$", template_name, lower(replace(template_name, "[\s\-\.]+", "_")), template2clone), null())
 | stats values(eval(case(isnotnull(key_found),template_name))) as "Existing Templates Identified", values(eval(case(isnull(key_found),template_name))) as "Templates to Create", values(curl_to_run) as "Template creation CURL commands to execute:"
-| fillnull value="none" "Exist Templates Identified" "Templates to Create" "Template creation CURL commands to execute:"</set>
+| fillnull value="none" "Existing Templates Identified" "Templates to Create" "Template creation CURL commands to execute:"</set>
           </condition>
           <condition value="urgency">
             <set token="action_body">
