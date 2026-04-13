@@ -321,8 +321,8 @@ $comment$</set>
       <title>Tier to Field Mapping - Mapping example from $lookup_name$</title>
       <table>
         <search id="idp_field_mapping">
-          <query><![CDATA[ | ```summarise lookup for field mapping ```
-  inputlookup idp_services_nvs_all_applications_prod_NEW.csv where lob="All Applications" group="*" t1="*"
+          <query><![CDATA[ | ```show tier to field mapping using example data from lookup ```
+  inputlookup idp_services_nvs_all_applications_prod_NEW.csv where lob="All Applications" group="*" t1=$tier_1|s$
 | fields t1, t2, t3
 | eval tiers=case(len(t1)>0 AND len(t2)>0 AND len(t3)>0, mvappend(t1,t2,t3),
                   len(t1)>0 AND len(t2)>0, mvappend(t1,t2),
@@ -348,6 +348,12 @@ $comment$</set>
         </search>
         <option name="drilldown">none</option>
         <option name="refresh.display">progressbar</option>
+                <format type="color" field="tier">
+          <colorPalette type="map">{"t1":#F8E6E4,"t2":#F8E6E4,"t3":#F8E6E4}</colorPalette>
+        </format>
+        <format type="color" field="idp field">
+          <colorPalette type="map">{"system":#F8E6E4,"app":#F8E6E4,"function":#F8E6E4}</colorPalette>
+        </format>
       </table>
     </panel>
   </row>
