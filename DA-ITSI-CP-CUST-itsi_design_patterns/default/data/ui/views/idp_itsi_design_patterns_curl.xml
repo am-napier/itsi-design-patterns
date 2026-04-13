@@ -322,7 +322,7 @@ $comment$</set>
       <table>
         <search id="idp_field_mapping">
           <query><![CDATA[ | ```show tier to field mapping using example data from lookup ```
-  inputlookup idp_services_nvs_all_applications_prod_NEW.csv where lob="All Applications" group="*" t1=$tier_1|s$
+  inputlookup $lookup_name$ where lob=$lob|s$ group=$group|s$ t1=$tier_1|s$
 | fields t1, t2, t3
 | eval tiers=case(len(t1)>0 AND len(t2)>0 AND len(t3)>0, mvappend(t1,t2,t3),
                   len(t1)>0 AND len(t2)>0, mvappend(t1,t2),
