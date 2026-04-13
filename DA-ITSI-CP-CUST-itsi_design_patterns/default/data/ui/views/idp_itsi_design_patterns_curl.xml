@@ -15,6 +15,9 @@
     <unset token="template_filter_config_error"></unset>
     <set token="template_filter_config_complete">false</set>
     <set token="comment">```</set>
+    <set token="form.tier1_field_map">app</set>
+    <set token="form.tier2_field_map">function</set>
+    <set token="form.tier3_field_map">system</set>
   </init>
   <!-- Base Searches 
     service_tree - gets the main set of records from the lookups via saved search
@@ -313,6 +316,32 @@ $comment$</set>
         <choice value="curl -k -u $U:$PWD">curl -k -u $U:$PWD</choice>
       </input>
       <html/>
+    </panel>
+    <panel depends="$lob$,$group$">
+      <title>Tier to Field Mapping - Mapping example from $lookup_name$</title>
+      <table>
+        <search id="idp_field_mapping">
+          <query>| ```summarise lookup for field mapping ```
+  inputlookup $lookup_name$ where lob=$lob|s$ group=$group|s$ t1=$tier_1|s$
+| fields t1, t2, t3
+| eval tiers=mvappend(t1,t2,t3),
+       max=mvcount(tiers)
+| sort - max
+| head 1
+| fields - max tiers
+| fillnull value="null"
+| transpose column_name="tier"
+| join tier type=left [ | inputlookup idp_tierfield_mapping.csv
+| rename *_map as *
+| transpose column_name="tier"
+| rename "row 1" as field ]
+| chart values(row 1) as "sample values" by field tier</query>
+          <earliest>$earliest$</earliest>
+          <latest>$latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
     </panel>
   </row>
   <row depends="$lob$">
