@@ -334,7 +334,7 @@ $comment$</set>
 | fillnull value="-"
 | transpose column_name="tier"
 | rename "row 1" as sample
-| append [ | inputlookup idp_tierfield_mapping_v2.csv
+| append [ | inputlookup idp_tierfield_mapping.csv
 | transpose column_name="field"
 | rename "row 1" as tier
 | fillnull value="zzz" tier ]
