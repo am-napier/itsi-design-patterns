@@ -322,7 +322,7 @@ $comment$</set>
       <table>
         <search id="idp_field_mapping">
           <query>| ```summarise lookup for field mapping ```
-  inputlookup $lookup_name$ where lob=$lob|s$ group=$group|s$ t1=$tier_1|s$ t2=$tier_2|s$ t3=$tier_3|s$ 
+  inputlookup $lookup_name$ where lob=$lob|s$ group=$group|s$ t1=$tier_1|s$
 | fields t1, t2, t3
 | eval tiers=mvappend(t1,t2,t3),
        max=mvcount(tiers)
