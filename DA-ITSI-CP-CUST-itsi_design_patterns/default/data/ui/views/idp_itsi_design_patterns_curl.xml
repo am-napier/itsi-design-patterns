@@ -321,12 +321,12 @@ $comment$</set>
       <title>Tier to Field Mapping - Mapping example from $lookup_name$</title>
       <table>
         <search id="idp_field_mapping">
-          <query>| ```summarise lookup for field mapping ```
+          <query><![CDATA[ | ```summarise lookup for field mapping ```
   inputlookup idp_services_nvs_all_applications_prod_NEW.csv where lob="All Applications" group="*" t1="*"
 | fields t1, t2, t3
-| eval tiers=case(len(t1)&gt;0 AND len(t2)&gt;0 AND len(t3)&gt;0, mvappend(t1,t2,t3),
-                  len(t1)&gt;0 AND len(t2)&gt;0, mvappend(t1,t2),
-                  len(t1)&gt;0, t1),
+| eval tiers=case(len(t1)>0 AND len(t2)>0 AND len(t3)>0, mvappend(t1,t2,t3),
+                  len(t1)>0 AND len(t2)>0, mvappend(t1,t2),
+                  len(t1)>0, t1),
        max=mvcount(tiers)       
 | sort - max
 | head 1
@@ -338,10 +338,11 @@ $comment$</set>
 | transpose column_name="field"
 | rename "row 1" as tier
 | fillnull value="zzz" tier ]
-| stats values(field) as field, values(sample) as "lookup sample value" by tier
+| stats values(field) as field, values(sample) as sample by tier
 | fillnull value="zzz" field
-| foreach tier, field [ eval <<FIELD>>=if(&lt;&lt;FIELD&gt;&gt;=="zzz", "no mapping", &lt;&lt;FIELD&gt;&gt;) ]
-| table tier, "lookup sample value", field</query>
+| foreach tier, field [ eval <<FIELD>>=if(<<FIELD>>=="zzz", "no mapping", <<FIELD>>) ]
+| rename sample as "lookup sample value", field as "idp field"
+| table tier, "lookup sample value", "idp field" ]]></query>
           <earliest>$earliest$</earliest>
           <latest>$latest$</latest>
         </search>
