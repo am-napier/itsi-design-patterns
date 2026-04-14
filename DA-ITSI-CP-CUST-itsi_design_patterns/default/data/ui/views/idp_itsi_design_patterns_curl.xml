@@ -321,26 +321,40 @@ $comment$</set>
       <title>Tier to Field Mapping - Mapping example from $lookup_name$</title>
       <table>
         <search id="idp_field_mapping">
-          <query>| ```summarise lookup for field mapping ```
+          <query><![CDATA[ | ```show tier to field mapping using example data from lookup ```
   inputlookup $lookup_name$ where lob=$lob|s$ group=$group|s$ t1=$tier_1|s$
 | fields t1, t2, t3
-| eval tiers=mvappend(t1,t2,t3),
-       max=mvcount(tiers)
+| eval tiers=case(len(t1)>0 AND len(t2)>0 AND len(t3)>0, mvappend(t1,t2,t3),
+                  len(t1)>0 AND len(t2)>0, mvappend(t1,t2),
+                  len(t1)>0, t1),
+       max=mvcount(tiers)       
 | sort - max
 | head 1
 | fields - max tiers
-| fillnull value="null"
+| fillnull value="-"
 | transpose column_name="tier"
-| join tier type=left [ | inputlookup idp_tierfield_mapping.csv
-| rename *_map as *
-| transpose column_name="tier"
-| rename "row 1" as field ]
-| chart values(row 1) as "sample values" by field tier</query>
+| rename "row 1" as sample
+| append [ | inputlookup idp_tierfield_mapping.csv
+| transpose column_name="field"
+| rename "row 1" as tier
+| fillnull value="zzz" tier ]
+| stats values(field) as field, values(sample) as sample by tier
+| fillnull value="zzz" field
+| foreach tier, field [ eval <<FIELD>>=if(<<FIELD>>=="zzz", "no mapping", <<FIELD>>) ]
+| rename sample as "lookup sample value", field as "idp field"
+| table tier, "lookup sample value", "idp field" ]]>
+          </query>
           <earliest>$earliest$</earliest>
           <latest>$latest$</latest>
         </search>
         <option name="drilldown">none</option>
         <option name="refresh.display">progressbar</option>
+        <format type="color" field="tier">
+          <colorPalette type="map">{"no mapping":#F7F4E4}</colorPalette>
+        </format>
+        <format type="color" field="idp field">
+          <colorPalette type="map">{"no mapping":#F7F4E4}</colorPalette>
+        </format>
       </table>
     </panel>
   </row>
