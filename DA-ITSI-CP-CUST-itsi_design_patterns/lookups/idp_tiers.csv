@@ -1,4 +1,7 @@
 child,parent,tier,urgency
+<lob> - <group>,<group>,t1,11
+<lob> - <group>,<group>,t2,11
+<lob> - <group>,<group>,t3,11
 "<t1> - <group>","<lob> - <group>",t1,11
 "<t1> - <group>","<lob> - <group>",t2,11
 "<t1> - <group>","<lob> - <group>",t3,11
