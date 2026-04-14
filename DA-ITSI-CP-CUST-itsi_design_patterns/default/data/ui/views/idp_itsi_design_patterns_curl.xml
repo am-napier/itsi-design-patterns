@@ -342,17 +342,18 @@ $comment$</set>
 | fillnull value="zzz" field
 | foreach tier, field [ eval <<FIELD>>=if(<<FIELD>>=="zzz", "no mapping", <<FIELD>>) ]
 | rename sample as "lookup sample value", field as "idp field"
-| table tier, "lookup sample value", "idp field" ]]></query>
+| table tier, "lookup sample value", "idp field" ]]>
+          </query>
           <earliest>$earliest$</earliest>
           <latest>$latest$</latest>
         </search>
         <option name="drilldown">none</option>
         <option name="refresh.display">progressbar</option>
-                <format type="color" field="tier">
-          <colorPalette type="map">{"t1":#F8E6E4,"t2":#F8E6E4,"t3":#F8E6E4}</colorPalette>
+        <format type="color" field="tier">
+          <colorPalette type="map">{"no mapping":#F7F4E4}</colorPalette>
         </format>
         <format type="color" field="idp field">
-          <colorPalette type="map">{"system":#F8E6E4,"app":#F8E6E4,"function":#F8E6E4}</colorPalette>
+          <colorPalette type="map">{"no mapping":#F7F4E4}</colorPalette>
         </format>
       </table>
     </panel>
