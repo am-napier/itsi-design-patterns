@@ -6,6 +6,18 @@
             "rule_condition": "AND",
             "rule_items": [
                 {
+                    "field": "group",
+                    "field_type": "info",
+                    "rule_type": "matchesblank",
+                    "value": ""
+                },
+                {
+                    "field": "lob",
+                    "field_type": "info",
+                    "rule_type": "matchesblank",
+                    "value": ""
+                },
+                {
                     "field": "system",
                     "field_type": "info",
                     "rule_type": "matchesblank",
@@ -18,19 +30,13 @@
                     "value": ""
                 },
                 {
-                    "field": "lob",
+                    "field": "function",
                     "field_type": "info",
                     "rule_type": "matchesblank",
                     "value": ""
                 },
                 {
                     "field": "type_name",
-                    "field_type": "info",
-                    "rule_type": "matchesblank",
-                    "value": ""
-                },
-                {
-                    "field": "group",
                     "field_type": "info",
                     "rule_type": "matchesblank",
                     "value": ""
@@ -44,13 +50,7 @@
                 {
                     "field": "tech_type",
                     "field_type": "info",
-                    "rule_type": "matchesblank",
-                    "value": ""
-                },
-                {
-                    "field": "function",
-                    "field_type": "info",
-                    "rule_type": "matchesblank",
+                    "rule_type": "matches",
                     "value": ""
                 }
             ]
