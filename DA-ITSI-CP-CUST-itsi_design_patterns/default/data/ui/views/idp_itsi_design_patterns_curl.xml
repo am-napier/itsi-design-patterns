@@ -120,7 +120,7 @@ inputlookup itsi_service_template_sync_status_lookup
 savedsearch idp_base_v2 lookup=$lookup_name$ group=$group|s$ lob=$lob|s$ tier_1=$tier_1|s$ tier_2=$tier_2|s$ tier_3=$tier_3|s$
 $comment$
 | itsiimportobjects
-  serviceTagsFields="tag1,tag2,tag3,tag4,tag5,tag6"
+  serviceTagsFields="tag1,tag2,tag3,tag4,tag5,tag6,tag7"
   serviceEnabled="1"
   serviceTitleField=parent
   serviceDependentsFields=child
@@ -388,6 +388,7 @@ $comment$</set>
         <change>
           <condition value="view">
             <set token="action_body">makeresults | eval msg="Pick an action to run it"</set>
+            <unset token="trigger_template_filter_build"></unset>
           </condition>
           <condition value="create_template">
             <set token="action_body">``` Generates CURL that clones the service template with the given id ```
@@ -434,14 +435,14 @@ $comment$</set>
           <condition value="service_entities">
             <set token="action_body">``` Generates the entities for the selected applications services```
               savedsearch idp_base_v2 lookup=$lookup_name$ group=$group|s$ lob=$lob|s$ tier_1=$tier_1|s$ tier_2=$tier_2|s$ tier_3=$tier_3|s$
-               | where isnotnull(template_name)
+               | where isnotnull(template_name) AND match(type_name,"^system_")
                | dedup system_app
-               | fields system_app,group,system,app,lob,type_name
+               | fields system_app,group,lob,system,app,function,type_name
                $comment$
                   | itsiimportobjects
                     entityFieldMapping=""
                     entityIdentifierFields="system_app"
-                    entityInformationalFields="group,system,app,lob,type_name,function,tech_type,node_type"    
+                    entityInformationalFields="group,lob,system,app,function,type_name,node_type"    
                     entityMergeField="system_app"
                     entityTitleField="system_app"
                     entityTypeField="Service Entity" 
@@ -714,19 +715,29 @@ Once the scope of the command is confirmed replace the -X GET with -X DELETE and
           <query>| search parent="$clicked$" OR child="$clicked$"
 | fillnull value="None" child template_name
 | dedup child, parent, tier
-| stats values(eval(case(child!="$clicked$", child))) as child,
+| stats values(eval(case(child!="$clicked$", child))) as children,
+        values(eval(case(child=="$clicked$", parent))) as parent,
         values(eval(if(child=="$clicked$",urgency, null()))) as urgency, 
-        values(eval(case(parent=="$clicked$",template_name))) as template_name
-        values(tag*) as tag*
-        values(eval(if(child=="$clicked$",null(), tag6))) as tag6
-| eval tags=mvappend(tag1, tag2, tag3, tag4, tag5),
-       fields=mvmap(tags,printf("%-9s%s", printf("%s:",mvindex(split(tags,":"),0)), mvindex(split(tags,":"),1))),      
-       fields=mvappend(fields,printf("urgency: %s",urgency)),
-       tags=mvappend(tags,tag6)
-| fields template_name child fields tags
+        values(eval(case(parent=="$clicked$",template_name))) as template_name,
+        values(tag1) as tag1,
+        values(tag2) as tag2,
+        values(tag3) as tag3,
+        values(tag4) as tag4,
+        values(tag5) as tag5,
+        values(eval(case(parent=="$clicked$", tag6))) as tag6,
+        values(eval(case(parent=="$clicked$", tag7))) as tag7,
+        values(eval(case(parent=="$clicked$", node_type))) as node_type,
+        values(eval(case(parent=="$clicked$", site))) as site
+| eval title="$clicked$",
+       tags=mvappend(tag1, tag2, tag3, tag4, tag5, tag6),
+       fields=mvmap(tags,printf("%-11s%s", printf("%s:",mvindex(split(tags,":"),0)), mvindex(split(tags,":"),1))),      
+       fields=if(isnotnull(site), mvappend(fields,printf("site:      %s",site)), fields),
+       fields=mvappend(fields,printf("node_type: %s",node_type)),
+       fields=mvappend(fields,printf("urgency:   %s",urgency)),
+       tags=mvappend(tags,tag7)
+| fields title template_name parent children fields tags
 | transpose
-| rename "row 1" as value
-          </query>
+| rename "row 1" as value</query>
         </search>
         <option name="count">100</option>
         <option name="drilldown">none</option>
