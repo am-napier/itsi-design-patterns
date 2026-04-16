@@ -120,7 +120,7 @@ inputlookup itsi_service_template_sync_status_lookup
 savedsearch idp_base_v2 lookup=$lookup_name$ group=$group|s$ lob=$lob|s$ tier_1=$tier_1|s$ tier_2=$tier_2|s$ tier_3=$tier_3|s$
 $comment$
 | itsiimportobjects
-  serviceTagsFields="tag1,tag2,tag3,tag4,tag5,tag6"
+  serviceTagsFields="tag1,tag2,tag3,tag4,tag5,tag6,tag7"
   serviceEnabled="1"
   serviceTitleField=parent
   serviceDependentsFields=child
@@ -388,6 +388,7 @@ $comment$</set>
         <change>
           <condition value="view">
             <set token="action_body">makeresults | eval msg="Pick an action to run it"</set>
+            <unset token="trigger_template_filter_build"></unset>
           </condition>
           <condition value="create_template">
             <set token="action_body">``` Generates CURL that clones the service template with the given id ```
