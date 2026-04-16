@@ -1,19 +1,19 @@
-child,parent,tier,urgency
-<lob> - <group>,<group>,t1,11
-<lob> - <group>,<group>,t2,11
-<lob> - <group>,<group>,t3,11
-"<t1> - <group>","<lob> - <group>",t1,11
-"<t1> - <group>","<lob> - <group>",t2,11
-"<t1> - <group>","<lob> - <group>",t3,11
-"<t2> (<t1>) - <group>","<t1> - <group>",t2,11
-"<t2> (<t1>) - <group>","<t1> - <group>",t3,11
-"<t3> (<t2> <t1>) - <group>","<t2> (<t1>) - <group>",t3,11
-"P1 <tiers> - <group>","<t1> - <group>",t1,11
-"P2 <tiers> - <group>","<t1> - <group>",t1,10
-"P3 <tiers> - <group>","<t1> - <group>",t1,3
-"P1 <tiers> - <group>","<t2> (<t1>) - <group>",t2,11
-"P2 <tiers> - <group>","<t2> (<t1>) - <group>",t2,10
-"P3 <tiers> - <group>","<t2> (<t1>) - <group>",t2,3
-"P1 <tiers> - <group>","<t3> (<t2> <t1>) - <group>",t3,11
-"P2 <tiers> - <group>","<t3> (<t2> <t1>) - <group>",t3,10
-"P3 <tiers> - <group>","<t3> (<t2> <t1>) - <group>",t3,3
+child,parent,tier,urgency,taglevel
+<lob> - <group>,<group>,t1,11,1
+<lob> - <group>,<group>,t2,11,1
+<lob> - <group>,<group>,t3,11,1
+<t1> - <group>,<lob> - <group>,t1,11,2
+<t1> - <group>,<lob> - <group>,t2,11,2
+<t1> - <group>,<lob> - <group>,t3,11,2
+<t2> (<t1>) - <group>,<t1> - <group>,t2,11,3
+<t2> (<t1>) - <group>,<t1> - <group>,t3,11,3
+<t3> (<t2> <t1>) - <group>,<t2> (<t1>) - <group>,t3,11,4
+P1 <tiers> - <group>,<t1> - <group>,t1,11,3
+P2 <tiers> - <group>,<t1> - <group>,t1,10,3
+P3 <tiers> - <group>,<t1> - <group>,t1,3,3
+P1 <tiers> - <group>,<t2> (<t1>) - <group>,t2,11,4
+P2 <tiers> - <group>,<t2> (<t1>) - <group>,t2,10,4
+P3 <tiers> - <group>,<t2> (<t1>) - <group>,t2,3,4
+P1 <tiers> - <group>,<t3> (<t2> <t1>) - <group>,t3,11,5
+P2 <tiers> - <group>,<t3> (<t2> <t1>) - <group>,t3,10,5
+P3 <tiers> - <group>,<t3> (<t2> <t1>) - <group>,t3,3,5
