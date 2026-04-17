@@ -6,6 +6,18 @@
             "rule_condition": "AND",
             "rule_items": [
                 {
+                    "field": "group",
+                    "field_type": "info",
+                    "rule_type": "matchesblank",
+                    "value": ""
+                },
+                {
+                    "field": "lob",
+                    "field_type": "info",
+                    "rule_type": "matchesblank",
+                    "value": ""
+                },
+                {
                     "field": "system",
                     "field_type": "info",
                     "rule_type": "matchesblank",
@@ -18,19 +30,13 @@
                     "value": ""
                 },
                 {
-                    "field": "lob",
+                    "field": "function",
                     "field_type": "info",
                     "rule_type": "matchesblank",
                     "value": ""
                 },
                 {
                     "field": "type_name",
-                    "field_type": "info",
-                    "rule_type": "matchesblank",
-                    "value": ""
-                },
-                {
-                    "field": "group",
                     "field_type": "info",
                     "rule_type": "matchesblank",
                     "value": ""
@@ -44,14 +50,8 @@
                 {
                     "field": "tech_type",
                     "field_type": "info",
-                    "rule_type": "matchesblank",
-                    "value": ""
-                },
-                {
-                    "field": "function",
-                    "field_type": "info",
-                    "rule_type": "matchesblank",
-                    "value": ""
+                    "rule_type": "matches",
+                    "value": "winserver"
                 }
             ]
         },
@@ -73,10 +73,10 @@
             ]
         }
     ],
-    "identifying_name": "we-are-groot",
+    "identifying_name": "we-are-groot-win",
     "isFirstTimeSaveDone": true,
     "is_healthscore_calculate_by_entity_enabled": 1.0,
-    "key": "__we_are_groot__",
+    "key": "__we_are_groot_win__",
     "kpis": [
         {
             "active_custom_threshold_window": "",
@@ -321,7 +321,7 @@
     "tags": [],
     "team_id": "default_itsi_security_group",
     "template_tags": [],
-    "title": "we-are-groot",
+    "title": "we-are-groot-win",
     "total_linked_services": 0.0,
     "version": "0.0.43"
 }
