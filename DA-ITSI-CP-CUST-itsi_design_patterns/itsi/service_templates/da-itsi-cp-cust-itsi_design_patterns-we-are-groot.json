@@ -67,8 +67,8 @@
                 {
                     "field": "type_name",
                     "field_type": "info",
-                    "rule_type": "matches",
-                    "value": "system_app"
+                    "rule_type": "matchesblank",
+                    "value": ""
                 }
             ]
         }

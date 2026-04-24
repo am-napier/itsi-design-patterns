@@ -435,7 +435,7 @@ $comment$</set>
           <condition value="service_entities">
             <set token="action_body">``` Generates the entities for the selected applications services```
               savedsearch idp_base_v2 lookup=$lookup_name$ group=$group|s$ lob=$lob|s$ tier_1=$tier_1|s$ tier_2=$tier_2|s$ tier_3=$tier_3|s$
-               | where isnotnull(template_name) AND match(type_name,"^system_")
+               | where isnotnull(template_name)
                | dedup system_app
                | fields system_app,group,lob,system,app,function,type_name
                $comment$
