@@ -15,7 +15,6 @@
     <unset token="template_filter_config_error"></unset>
     <set token="template_filter_config_complete">false</set>
     <set token="comment">```</set>
-    <set token="safetyfirst">-X GET</set>
     <set token="form.tier1_field_map">app</set>
     <set token="form.tier2_field_map">function</set>
     <set token="form.tier3_field_map">system</set>
@@ -93,27 +92,51 @@ inputlookup itsi_service_template_sync_status_lookup
     <query>
       <![CDATA[
 | rest report_as=text splunk_server=local /servicesNS/nobody/SA-ITOA/itoa_interface/base_service_template filter="{\"title\": {\"$regex\" : \"^($template_filter_regex$)$\" }}" fields="entity_rules,title" 
-| eval value=spath(value, "{}") 
-| mvexpand value 
-| eval title=spath(value, "title"), id=spath(value, "_key") 
-| eval rules=spath(value, "entity_rules{}"), value=null() 
-| mvexpand rules 
-| streamstats c by title 
-| eval key=title.c, item=spath(rules, "rule_items{}") 
-| mvexpand item 
-| foreach field field_type value rule_type 
-    [ eval <<FIELD>>=spath(item, "<<FIELD>>")] 
-| eval new_item=case(rule_type=="matchesblank", json_object("field", field, "field_type", field_type, "value", field, "rule_type", "matchesblank"), rule_type=="notmatchesblank", json_object("field", field, "field_type", field_type, "value", field, "rule_type", "notmatchesblank"), 1==1, item) 
-| stats values(new_item) as item by key, title 
-| eval new_rules=json_object("rule_condition", "AND", "rule_items", json(printf("[%s]", mvjoin(item, ",")))) 
-| eval f=json_object("rule_items", json(printf("[%s]", mvjoin(item, ","))), "rule_condition", "AND") 
-| stats values(f) as filter by title 
-| eval serviceTemplatesConfig=printf("\"%s\": %s", title, json_object("entity_rules", json(printf("[%s]", mvjoin(filter, ","))))) 
-| stats values(serviceTemplatesConfig) as serviceTemplatesConfig 
-| eval serviceTemplatesConfig=printf("\"{%s}\"", replace(mvjoin(serviceTemplatesConfig, ","), "\"", "\\\""))
+| eval foundcount=mvcount(json_array_to_mv(value)),
+       inputtemplatecount=mvcount(split("$template_filter_regex$","|")),
+       checkresult=if(foundcount==inputtemplatecount, null(), printf("Failed to create Template Filter. Found %s of %s expected template in ITSI.",foundcount,inputtemplatecount)),
+    value=if(isnull(checkresult), value, null())
+| appendpipe 
+    [| where isnotnull(value)
+        ``` given we have all expected templates, start processing entity rules ```
+| fields value
+| eval value=json_array_to_mv(value)
+| mvexpand value
+| eval title=json_extract(value,"title"),
+        id=json_extract(value,"_key"),
+        rules=json_extract(value,"entity_rules{}") 
+    | fields - value 
+    | mvexpand rules 
+    | streamstats c by title 
+    | eval key=title.c, item=json_extract(rules, "{}.rule_items") 
+    | mvexpand item 
+    | foreach field field_type value rule_type 
+        [ eval <<FIELD>>=spath(item, "<<FIELD>>")] 
+    | eval new_item=case(rule_type=="matchesblank", json_object("field", field, "field_type", field_type, "value", field, "rule_type", "matchesblank"), rule_type=="notmatchesblank", json_object("field", field, "field_type", field_type, "value", field, "rule_type", "notmatchesblank"), 1==1, item) 
+    | stats values(new_item) as item by key, title 
+    | eval new_rules=json_object("rule_condition", "AND", "rule_items", json(printf("[%s]", mvjoin(item, ",")))) 
+    | eval f=json_object("rule_items", json(printf("[%s]", mvjoin(item, ","))), "rule_condition", "AND") 
+    | stats values(f) as filter by title 
+    | eval serviceTemplatesConfig=printf("\"%s\": %s", title, json_object("entity_rules", json(printf("[%s]", mvjoin(filter, ","))))) 
+    | stats values(serviceTemplatesConfig) as serviceTemplatesConfig 
+    | eval serviceTemplatesConfig=printf("\"{%s}\"", replace(mvjoin(serviceTemplatesConfig, ","), "\"", "\\\"")) ] 
+| fields checkresult, serviceTemplatesConfig
+| search checkresult=* OR serviceTemplatesConfig=*
     ]]>
     </query>
     <done>
+      <condition match="len($template_filter_regex$) &gt; 0 AND len($result.checkresult$) &gt; 0">
+        <unset token="template_filter_config"></unset>
+        <unset token="template_filter_config_complete">false</unset>
+        <set token="template_filter_config_error">$result.checkresult$</set>
+        <unset token="action_body"></unset>
+      </condition>
+      <condition match="len($template_filter_regex$) &gt; 0 AND $job.resultCount$ == 0">
+        <unset token="template_filter_config"></unset>
+        <unset token="template_filter_config_complete">false</unset>
+        <set token="template_filter_config_error">Failed to create Template Filter, set_template_filter returned no results. </set>
+        <unset token="action_body"></unset>
+      </condition>
       <condition match="len($result.serviceTemplatesConfig$) &gt; 0">
         <unset token="template_filter_config_error"></unset>
         <set token="template_filter_config">$result.serviceTemplatesConfig$</set>
@@ -130,18 +153,6 @@ $comment$
   serviceTemplatesConfig=$result.serviceTemplatesConfig$
   updateType=$updateType$
 $comment$</set>
-      </condition>
-      <condition match="len($template_filter_regex$) &gt; 0 AND len($result.checkresult$) &gt; 0">
-        <unset token="template_filter_config"></unset>
-        <unset token="template_filter_config_complete">false</unset>
-        <set token="template_filter_config_error">$result.checkresult$</set>
-        <unset token="action_body"></unset>
-      </condition>
-      <condition match="len($template_filter_regex$) &gt; 0 AND $job.resultCount$ == 0">
-        <unset token="template_filter_config"></unset>
-        <unset token="template_filter_config_complete">false</unset>
-        <set token="template_filter_config_error">Search failed to create Template Filter, no results returned. </set>
-        <unset token="action_body"></unset>
       </condition>
     </done>
   </search>
@@ -473,7 +484,7 @@ $comment$</set>
 | search NOT othersvcfound=*
 | stats c(eval(isnotnull(templateid))) as templatecount values(host) as host values(crl) as crl values(key_found) as templateid
 | eval template_filter_regex=mvjoin(templateid,"|"),
-       templatecmd=if(mvcount(split(template_filter_regex,"|"))>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/base_service_template?filter=\{\"_key\":\{\"$regex\":\"^(%s)$\"\}\}'", crl, host, template_filter_regex), "No templates qualify for deletion")
+       templatecmd=if(mvcount(split(template_filter_regex,"|"))>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/base_service_template?filter=\{\"_key\":\{\"$regex\":\"^(%s)$\"\}\}'  -X GET;", crl, host, template_filter_regex), "No templates qualify for deletion")
 | fields - templateid, template_filter_regex
 ``` end templates ```
 ``` process services - exclude services that have children outside the tree selected for clean-up ``` 
@@ -493,15 +504,15 @@ $comment$</set>
 ``` finalise and process entities - all leaf node services entities are inscope ``` 
 | eval title=replace(title,"[\[\(\)\]\s]",".")
 | stats values(eval(case(isnull(othersfound),title))) as services, values(host) as host, values(crl) as crl, values(templatecmd) as templatecmd
-| eval servicecmd=if(mvcount(services)>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/service?filter=\{\"title\":\{\"$regex\":\"^(%s)$\"\}\}'", crl, host, mvjoin(services,"|")), "No services found in config"),
-       entitycmd=if(mvcount(split("$entity_filter_regex$","|"))>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/entity?filter=\{\"title\":\{\"$regex\":\"^($entity_filter_regex$)$\"\}\}'", crl, host), "No entities found in config"),
+| eval servicecmd=if(mvcount(services)>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/service?filter=\{\"title\":\{\"$regex\":\"^(%s)$\"\}\}' -X GET;", crl, host, mvjoin(services,"|")), "No services found in config"),
+       entitycmd=if(mvcount(split("$entity_filter_regex$","|"))>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/entity?filter=\{\"title\":\{\"$regex\":\"^($entity_filter_regex$)$\"\}\}' -X GET;", crl, host), "No entities found in config"),
        EXECUTE_WITH_CARE=printf("WARNING:
 Execute these commands with care. By default each command performs a GET, check the output and double check your ITSI backup before proceeding.  
 Once the scope of the command is confirmed replace the -X GET with -X DELETE and execute:
 
-%s $safetyfirst$;
-%s $safetyfirst$;
-%s $safetyfirst$;
+%s
+%s
+%s
  
 ", entitycmd, servicecmd, templatecmd)
 | table EXECUTE_WITH_CARE ]]>
@@ -566,7 +577,7 @@ Once the scope of the command is confirmed replace the -X GET with -X DELETE and
   <row depends="$template_filter_config_error$">
     <panel>
       <html>
-        <div style="font-style:bold;line-height:0.75;color:red;font-size:120%">WARNING!<br/>$template_filter_config_error$ Cannot complete action "3. Build Model" without valid template configuration<br/>Ensure action "1. Create Templates (curl)" completed successfully before continuing</div>
+        <div style="font-style:bold;line-height:0.75;color:red;font-size:120%">WARNING!<br/>$template_filter_config_error$<br/>Cannot complete action "3. Build Model" without valid template configuration. Ensure action "1. Create Templates (curl)" completed successfully before continuing</div>
       </html>
     </panel>
   </row>
@@ -651,10 +662,6 @@ Once the scope of the command is confirmed replace the -X GET with -X DELETE and
             <td>
               <b>Token Value</b>
             </td>
-          </tr>
-        <tr class="idp">
-            <td>CMD Safety</td>
-            <td>$safetyfirst$</td>
           </tr>
         <tr class="idp">
             <td>Lookup Validation</td>
