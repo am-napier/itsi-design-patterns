@@ -93,27 +93,52 @@ inputlookup itsi_service_template_sync_status_lookup
     <query>
       <![CDATA[
 | rest report_as=text splunk_server=local /servicesNS/nobody/SA-ITOA/itoa_interface/base_service_template filter="{\"title\": {\"$regex\" : \"^($template_filter_regex$)$\" }}" fields="entity_rules,title" 
-| eval value=spath(value, "{}") 
-| mvexpand value 
-| eval title=spath(value, "title"), id=spath(value, "_key") 
-| eval rules=spath(value, "entity_rules{}"), value=null() 
-| mvexpand rules 
-| streamstats c by title 
-| eval key=title.c, item=spath(rules, "rule_items{}") 
-| mvexpand item 
-| foreach field field_type value rule_type 
-    [ eval <<FIELD>>=spath(item, "<<FIELD>>")] 
-| eval new_item=case(rule_type=="matchesblank", json_object("field", field, "field_type", field_type, "value", field, "rule_type", "matchesblank"), rule_type=="notmatchesblank", json_object("field", field, "field_type", field_type, "value", field, "rule_type", "notmatchesblank"), 1==1, item) 
-| stats values(new_item) as item by key, title 
-| eval new_rules=json_object("rule_condition", "AND", "rule_items", json(printf("[%s]", mvjoin(item, ",")))) 
-| eval f=json_object("rule_items", json(printf("[%s]", mvjoin(item, ","))), "rule_condition", "AND") 
-| stats values(f) as filter by title 
-| eval serviceTemplatesConfig=printf("\"%s\": %s", title, json_object("entity_rules", json(printf("[%s]", mvjoin(filter, ","))))) 
-| stats values(serviceTemplatesConfig) as serviceTemplatesConfig 
-| eval serviceTemplatesConfig=printf("\"{%s}\"", replace(mvjoin(serviceTemplatesConfig, ","), "\"", "\\\""))
+| eval foundcount=mvcount(json_array_to_mv(value)),
+       inputtemplatecount=mvcount(split("$template_filter_regex$","|")),
+       checkresult=if(foundcount==inputtemplatecount, null(), printf("Failed to create Template Filter. Found %s of %s expected templates in ITSI.",foundcount,inputtemplatecount)),
+    value=if(isnull(checkresult), value, null())
+| fields - foundcount inputtemplatecount splunk_server
+| appendpipe 
+    [| where isnotnull(value)
+        ``` given we have all expected templates, start processing entity rules ```
+    | fields - checkresult
+    | eval value=json_array_to_mv(value)
+    | mvexpand value
+    | eval title=json_extract(value,"title"),
+        id=json_extract(value,"_key"),
+        rules=json_array_to_mv(json_extract(value,"entity_rules{}")) 
+    | fields - value 
+    | mvexpand rules 
+    | streamstats c by title 
+    | eval key=title.c, item=json_array_to_mv(json_extract(rules, "rule_items{}"))
+    | mvexpand item 
+    | foreach field field_type value rule_type 
+        [ eval <<FIELD>>=spath(item, "<<FIELD>>")] 
+    | eval new_item=case(rule_type=="matchesblank", json_object("field", field, "field_type", field_type, "value", field, "rule_type", "matchesblank"), rule_type=="notmatchesblank", json_object("field", field, "field_type", field_type, "value", field, "rule_type", "notmatchesblank"), 1==1, item) 
+    | stats values(new_item) as item by key, title 
+    | eval new_rules=json_object("rule_condition", "AND", "rule_items", json(printf("[%s]", mvjoin(item, ",")))) 
+    | eval f=json_object("rule_items", json(printf("[%s]", mvjoin(item, ","))), "rule_condition", "AND") 
+    | stats values(f) as filter by title 
+    | eval serviceTemplatesConfig=printf("\"%s\": %s", title, json_object("entity_rules", json(printf("[%s]", mvjoin(filter, ","))))) 
+    | stats values(serviceTemplatesConfig) as serviceTemplatesConfig 
+    | eval serviceTemplatesConfig=printf("\"{%s}\"", replace(mvjoin(serviceTemplatesConfig, ","), "\"", "\\\"")) ] 
+| fields - value 
+| where isnotnull(serviceTemplatesConfig) OR isnotnull(checkresult)
     ]]>
     </query>
     <done>
+      <condition match="len($template_filter_regex$) &gt; 0 AND len($result.checkresult$) &gt; 0">
+        <unset token="template_filter_config"></unset>
+        <unset token="template_filter_config_complete">false</unset>
+        <set token="template_filter_config_error">$result.checkresult$</set>
+        <unset token="action_body"></unset>
+      </condition>
+      <condition match="len($template_filter_regex$) &gt; 0 AND $job.resultCount$ == 0">
+        <unset token="template_filter_config"></unset>
+        <unset token="template_filter_config_complete">false</unset>
+        <set token="template_filter_config_error">Failed to create Template Filter, set_template_filter returned no results.</set>
+        <unset token="action_body"></unset>
+      </condition>
       <condition match="len($result.serviceTemplatesConfig$) &gt; 0">
         <unset token="template_filter_config_error"></unset>
         <set token="template_filter_config">$result.serviceTemplatesConfig$</set>
@@ -460,50 +485,75 @@ $comment$</set>
           </condition>
           <condition value="clean_up">
             <set token="action_body">
-              <![CDATA[ makeresults
-| eval host="$itsi_uri$",
-       crl="$curl_cmd$",
-       templatelist=split("$template_filter_regex$","|")
-``` process templates - validate they exist and exclude templates synced with services outside the tree selected fro clean-up``` 
+              <![CDATA[ ``` start processing services - we need to exclude any service that has children outside of the selected tree! ``` 
+savedsearch idp_base_v2 lookup=$lookup_name$ lob=$lob|s$ group=$group|s$ tier_1=$tier_1|s$ tier_2=$tier_2|s$ tier_3=$tier_3|s$
+| fields servicename, child, parent, taglevel
+| appendpipe 
+    [| where isnull(parent) AND isnotnull(child) 
+    | rename child as parent ] 
+| rename parent as servicename
+| eval serviceregex=replace(servicename,"[\[\(\)\]\s]",".")
+| fields servicename, serviceregex, taglevel
+| stats values(*) as * by servicename
+| lookup service_kpi_lookup title as servicename OUTPUT _key as serviceid
+| append [ | inputlookup service_telemetry_lookup | eval serviceid=_key | fields serviceid, services_depends_on.serviceid, services_depending_on_me.serviceid | rename services_depends_on.serviceid as children, services_depending_on_me.serviceid as parents | search children=* ]
+| stats values(*) as * by serviceid 
+| search servicename=*
+| lookup service_kpi_lookup _key as children OUTPUT title as childnames
+| eval idpservicelist=split("$service_filter$","|")
+``` Now id services in the selected tree that have addtional children and exclude them ``` 
+| foreach childnames mode=multivalue [ eval pattern=printf("^%s$", replace(<<ITEM>>,"[\(\)]",".")), otherchildfound=if(isnull(mvfind(idpservicelist,pattern)), mvappend(otherchildfound,<<ITEM>>), otherchildfound) ]
+| eval found=if(isnotnull(otherchildfound), serviceid, found)
+| eventstats max(eval(case(isnotnull(otherchildfound),taglevel))) as lowtag
+| appendpipe [ | ``` here we identify parents of services with additonal children and exclude them ``` where taglevel<=lowtag  | fields servicename, serviceid, children, parents, found, taglevel, lowtag
+    | eval treeitterator=mvreverse(mvrange(1,lowtag)),
+           tree=if(isnull(found), printf("%s~~%s~~(%s)", taglevel, serviceid, mvjoin(children,"|")), null),
+           tree=mvappend(tree,"")
+    | stats values(tree) as tree, values(found) as found
+    | eval tree=mvreverse(mvsort(tree))
+    | foreach tree mode=multivalue [ eval temp=split(<<ITEM>>, "~~"), this=mvindex(temp,1), thischildren=mvindex(temp,2), found=if(isnotnull(mvfind(found, thischildren)), mvappend(found,this), found) ]
+    | fields found
+    | mvexpand found
+    | eval serviceid=found ]
+| stats values(*) as * by serviceid
+| where isnull(found) OR len(found)<1
+``` end service hierarchy search ```
+``` finalise service and entity clean-up commands ```
+| fields servicename
+| eval servicename=replace(servicename,"[\[\(\)\]\s]","."),
+       entitylistregex="($entity_filter_regex$)",
+       entityinclude=if(match(servicename,entitylistregex), servicename, null())
+| stats c as servicecount values(servicename) as services, c(eval(isnotnull(entityinclude))) as entitycount, values(eval(case(isnotnull(entityinclude),servicename))) as entities 
+| eval host="10.236.7.105:8089",
+       crl="curl -k -H \"Authorization: Splunk $T\"",
+       servicecmd=if(servicecount>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/service?filter=\{\"title\":\{\"$regex\":\"^(%s)$\"\}\}'", crl, host, mvjoin(services,"|")), "No services found in config"),
+       entitycmd=if(entitycount>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/entity?filter=\{\"title\":\{\"$regex\":\"^(%s)$\"\}\}'", crl, host, mvjoin(entities,"|")), "No services found in config")
+| fields host,  crl, servicecount, servicecmd, entitycount, entitycmd
+``` start template cmd creation ```
+| eval templatelist=split("$template_filter_regex$","|")
 | mvexpand templatelist
 | where !match(templatelist,"(i-am-groot|we-are-groot)")
 | lookup itsi_service_template_sync_status_lookup title as templatelist OUTPUT _key as key_found
 | lookup service_telemetry_lookup base_service_template_id as key_found OUTPUT title
 | eval othersvcfound=mvmap(title,if(!match(title,"^($service_filter_regex$)$"), "true", null()))
 | search NOT othersvcfound=*
-| stats c(eval(isnotnull(templateid))) as templatecount values(host) as host values(crl) as crl values(key_found) as templateid
+| stats c(eval(isnotnull(key_found))) as templatecount values(host) as host values(crl) as crl values(key_found) as templateid, values(servicecmd) as servicecmd, values(servicecount) as servicecount, values(entitycmd) as entitycmd, values(entitycount) as entitycount
 | eval template_filter_regex=mvjoin(templateid,"|"),
        templatecmd=if(mvcount(split(template_filter_regex,"|"))>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/base_service_template?filter=\{\"_key\":\{\"$regex\":\"^(%s)$\"\}\}'", crl, host, template_filter_regex), "No templates qualify for deletion")
 | fields - templateid, template_filter_regex
-``` end templates ```
-``` process services - exclude services that have children outside the tree selected for clean-up ``` 
-| eval title=split("$service_filter$","|")
-| eval services=title
-| mvexpand title
-| lookup service_kpi_lookup title OUTPUT _key as serviceid
-| append [ | inputlookup service_telemetry_lookup | eval serviceid=_key | fields title, serviceid, services_depends_on.serviceid | rename services_depends_on.serviceid as children | search children=* ]
-| stats c values(*) as * by serviceid
-| search title=* services=*
-| lookup service_kpi_lookup _key as children OUTPUT title as childnames
-| foreach childnames mode=multivalue [ eval pattern=printf("^%s$", replace(<<ITEM>>,"[\(\)]",".")), othersfound=if(isnull(mvfind(services,pattern)), "othersfound", othersfound)  ]
-| fields - pattern
-| eventstats values(eval(case(isnotnull(othersfound),title))) as excluded
-| foreach excluded mode=multivalue [ eval pattern=printf("^%s$", replace(<<ITEM>>,"[\(\)]",".")), othersfound=if(isnotnull(mvfind(childnames,pattern)), "othersfound", othersfound)  ]
-``` end services ```
-``` finalise and process entities - all leaf node services entities are inscope ``` 
-| eval title=replace(title,"[\[\(\)\]\s]",".")
-| stats values(eval(case(isnull(othersfound),title))) as services, values(host) as host, values(crl) as crl, values(templatecmd) as templatecmd
-| eval servicecmd=if(mvcount(services)>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/service?filter=\{\"title\":\{\"$regex\":\"^(%s)$\"\}\}'", crl, host, mvjoin(services,"|")), "No services found in config"),
-       entitycmd=if(mvcount(split("$entity_filter_regex$","|"))>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/entity?filter=\{\"title\":\{\"$regex\":\"^($entity_filter_regex$)$\"\}\}'", crl, host), "No entities found in config"),
-       EXECUTE_WITH_CARE=printf("WARNING:
-Execute these commands with care. By default each command performs a GET, check the output and double check your ITSI backup before proceeding.  
-Once the scope of the command is confirmed replace the -X GET with -X DELETE and execute:
+``` end template cmd creation ```
+``` finalise and create message ```
+| eval EXECUTE_WITH_CARE=printf("WARNING:
+Execute these commands with care. For safety the default commands are GET; qualify the output and then replace `-X GET` with `-X DELETE` and execute clean-up. 
+Double check your ITSI backup before proceeding.  
 
-%s $safetyfirst$;
-%s $safetyfirst$;
-%s $safetyfirst$;
+Found %s entities, %s services, %s templates in-scope. Execute the following to remove these objects:
+
+%s -X GET;
+%s -X GET;
+%s -X GET;
  
-", entitycmd, servicecmd, templatecmd)
+", entitycount, servicecount, templatecount, entitycmd, servicecmd, templatecmd)
 | table EXECUTE_WITH_CARE ]]>
             </set>
           </condition>
@@ -566,7 +616,7 @@ Once the scope of the command is confirmed replace the -X GET with -X DELETE and
   <row depends="$template_filter_config_error$">
     <panel>
       <html>
-        <div style="font-style:bold;line-height:0.75;color:red;font-size:120%">WARNING!<br/>$template_filter_config_error$ Cannot complete action "3. Build Model" without valid template configuration<br/>Ensure action "1. Create Templates (curl)" completed successfully before continuing</div>
+        <div style="font-style:bold;line-height:0.75;color:red;font-size:120%">WARNING!<br/>$template_filter_config_error$.<br/>Cannot complete action "3. Build Model" without valid template configuration. Ensure action "1. Create Templates (curl)" completed successfully before continuing</div>
       </html>
     </panel>
   </row>
