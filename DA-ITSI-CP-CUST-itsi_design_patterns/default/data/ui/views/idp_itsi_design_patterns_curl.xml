@@ -507,8 +507,9 @@ savedsearch idp_base_v2 lookup=$lookup_name$ lob=$lob|s$ group=$group|s$ tier_1=
 | eventstats max(eval(case(isnotnull(otherchildfound),taglevel))) as lowtag
 | appendpipe [ | ``` here we identify parents of services with additonal children and exclude them ``` where taglevel<=lowtag  | fields servicename, serviceid, children, parents, found, taglevel, lowtag
     | eval treeitterator=mvreverse(mvrange(1,lowtag)),
-           tree=if(isnull(found), printf("%s~~%s~~(%s)", taglevel, serviceid, mvjoin(children,"|")), null)
-    | stats values(hereweprocess) as hereweprocess, values(tree) as tree, values(found) as found
+           tree=if(isnull(found), printf("%s~~%s~~(%s)", taglevel, serviceid, mvjoin(children,"|")), null),
+           tree=mvappend(tree,"")
+    | stats values(tree) as tree, values(found) as found
     | eval tree=mvreverse(mvsort(tree))
     | foreach tree mode=multivalue [ eval temp=split(<<ITEM>>, "~~"), this=mvindex(temp,1), thischildren=mvindex(temp,2), found=if(isnotnull(mvfind(found, thischildren)), mvappend(found,this), found) ]
     | fields found
