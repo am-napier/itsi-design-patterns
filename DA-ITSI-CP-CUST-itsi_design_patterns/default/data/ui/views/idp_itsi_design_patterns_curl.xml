@@ -526,8 +526,8 @@ savedsearch idp_base_v2 lookup=$lookup_name$ lob=$lob|s$ group=$group|s$ tier_1=
 | stats c as servicecount values(servicename) as services, c(eval(isnotnull(entityinclude))) as entitycount, values(eval(case(isnotnull(entityinclude),servicename))) as entities 
 | eval host="$itsi_uri$",
        crl="$curl_cmd$",
-       servicecmd=if(servicecount>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/service?filter=\{\"title\":\{\"$regex\":\"^(%s)$\"\}\}'", crl, host, mvjoin(services,"|")), "No services found in config"),
-       entitycmd=if(entitycount>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/entity?filter=\{\"title\":\{\"$regex\":\"^(%s)$\"\}\}'", crl, host, mvjoin(entities,"|")), "No services found in config")
+       servicecmd=if(servicecount>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/service?filter=\{\"title\":\{\"$regex\":\"^(%s)$\"\}\}' -X GET;", crl, host, mvjoin(services,"|")), "No services found in config"),
+       entitycmd=if(entitycount>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/entity?filter=\{\"title\":\{\"$regex\":\"^(%s)$\"\}\}' -X GET;", crl, host, mvjoin(entities,"|")), "No services found in config")
 | fields host,  crl, servicecount, servicecmd, entitycount, entitycmd
 ``` start template cmd creation ```
 | eval templatelist=split("$template_filter_regex$","|")
@@ -539,7 +539,7 @@ savedsearch idp_base_v2 lookup=$lookup_name$ lob=$lob|s$ group=$group|s$ tier_1=
 | search NOT othersvcfound=*
 | stats c(eval(isnotnull(key_found))) as templatecount values(host) as host values(crl) as crl values(key_found) as templateid, values(servicecmd) as servicecmd, values(servicecount) as servicecount, values(entitycmd) as entitycmd, values(entitycount) as entitycount
 | eval template_filter_regex=mvjoin(templateid,"|"),
-       templatecmd=if(mvcount(split(template_filter_regex,"|"))>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/base_service_template?filter=\{\"_key\":\{\"$regex\":\"^(%s)$\"\}\}'", crl, host, template_filter_regex), "No templates qualify for deletion")
+       templatecmd=if(mvcount(split(template_filter_regex,"|"))>0, printf("%s 'https://%s/servicesNS/nobody/SA-ITOA/itoa_interface/base_service_template?filter=\{\"_key\":\{\"$regex\":\"^(%s)$\"\}\}' -X GET;", crl, host, template_filter_regex), "No templates qualify for deletion")
 | fields - templateid, template_filter_regex
 ``` end template cmd creation ```
 ``` finalise and create message ```
@@ -549,9 +549,9 @@ Double check your ITSI backup before proceeding.
 
 Found %s entities, %s services, %s templates in-scope. Execute the following to remove these objects:
 
-%s -X GET;
-%s -X GET;
-%s -X GET;
+%s
+%s
+%s
  
 ", entitycount, servicecount, templatecount, entitycmd, servicecmd, templatecmd)
 | table EXECUTE_WITH_CARE ]]>
