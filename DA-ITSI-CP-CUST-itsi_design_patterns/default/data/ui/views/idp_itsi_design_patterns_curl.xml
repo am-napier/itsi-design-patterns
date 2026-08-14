@@ -106,11 +106,11 @@ inputlookup itsi_service_template_sync_status_lookup
     | mvexpand value
     | eval title=json_extract(value,"title"),
         id=json_extract(value,"_key"),
-        rules=json_array_to_mv(json_extract(value,"entity_rules{}")) 
+        rules=coalesce(json_array_to_mv(json_extract(value,"entity_rules{}")),json_extract(value,"entity_rules{}"))
     | fields - value 
     | mvexpand rules 
     | streamstats c by title 
-    | eval key=title.c, item=json_array_to_mv(json_extract(rules, "rule_items{}"))
+    | eval key=title.c, item=coalesce(json_array_to_mv(json_extract(rules, "rule_items{}")),json_extract(rules, "rule_items{}"))
     | mvexpand item 
     | foreach field field_type value rule_type 
         [ eval <<FIELD>>=spath(item, "<<FIELD>>")] 
@@ -357,6 +357,7 @@ $comment$</set>
           <query>
             <![CDATA[ | ```show tier to field mapping using example data from lookup ```
   inputlookup $lookup_name$ where lob=$lob|s$ group=$group|s$ t1=$tier_1|s$
+| search (t2=$tier_2|s$ OR NOT t2=*) AND (t3=$tier_3|s$ OR NOT t3=*)
 | fields t1, t2, t3
 | eval tiers=case(len(t1)>0 AND len(t2)>0 AND len(t3)>0, mvappend(t1,t2,t3),
                   len(t1)>0 AND len(t2)>0, mvappend(t1,t2),
